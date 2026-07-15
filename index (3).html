@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kaluf e Gomes — Diagnóstico em RH & DP</title>
+<meta name="description" content="Diagnóstico completo em Recursos Humanos e Departamento Pessoal. Estruturamos processos, reduzimos riscos e transformamos dados em decisões." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --white:#FFFFFF;
+    --gray-100:#F4F5F7;
+    --gray-300:#DCE0E4;
+    --gray-600:#5B6470;
+    --gray-900:#1C2126;
+    --blue-deep:#0A1628;
+    --blue-deep-2:#0E1E36;
+    --blue-petrol:#123B41;
+    --blue-petrol-2:#175059;
+    --black:#05070A;
+    --green:#2FAE66;
+    --green-soft:rgba(47,174,102,0.14);
+  }
+
+  *{scroll-behavior:auto;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--white);
+    color:var(--gray-900);
+    font-family:'IBM Plex Sans', sans-serif;
+    overflow-x:hidden;
+  }
+  .font-display{font-family:'Bricolage Grotesque', sans-serif;}
+  .font-mono{font-family:'IBM Plex Mono', monospace;}
+
+  ::selection{background:var(--blue-petrol); color:var(--white);}
+
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:var(--white);}
+  ::-webkit-scrollbar-thumb{background:var(--gray-300); border-radius:8px;}
+
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--blue-petrol);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  .glass{
+    background:rgba(255,255,255,0.72);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+  .glass-dark{
+    background:rgba(10,22,40,0.55);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .reveal{opacity:1;}
+
+  .eyebrow{
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    font-size:0.72rem;
+    font-weight:600;
+  }
+
+  .divider-line{
+    height:1px;
+    width:100%;
+    background:linear-gradient(90deg, transparent, var(--gray-300), transparent);
+  }
+
+  .card-lift{
+    transition:transform .5s cubic-bezier(.22,.9,.32,1), box-shadow .5s ease, border-color .4s ease;
+  }
+  .card-lift:hover{
+    transform:translateY(-6px);
+    box-shadow:0 24px 60px -20px rgba(10,22,40,0.18);
+  }
+
+  #hero-network{position:absolute; inset:0; width:100%; height:100%;}
+
+  .mv-viewport{overflow:hidden;}
+  .mv-track{display:flex; will-change:transform;}
+  .mv-stage{
+    width:100vw;
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+  }
+
+  @media (min-width: 768px){
+    .mv-viewport{height:100vh;}
+    .mv-stage{
+      height:100vh;
+      box-sizing:border-box;
+      padding-top:6rem;
+      padding-bottom:2rem;
+      overflow:hidden;
+    }
+    .mv-stage > div{
+      max-height:100%;
+      overflow-y:auto;
+      scrollbar-width:thin;
+    }
+  }
+
+  .num-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    color:var(--blue-petrol);
+  }
+
+  .kpi-ring circle{stroke-linecap:round;}
+
+  @keyframes spin-slow{ to{ transform:rotate(360deg);} }
+  .spin-slow{animation:spin-slow 26s linear infinite;}
+  @keyframes spin-slow-rev{ to{ transform:rotate(-360deg);} }
+  .spin-slow-rev{animation:spin-slow-rev 32s linear infinite;}
+
+  @keyframes bob{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(8px);}
+  }
+  .bob{animation:bob 2.2s ease-in-out infinite;}
+
+  @keyframes drift{
+    0%,100%{ transform:translate(0,0);}
+    50%{ transform:translate(10px,-14px);}
+  }
+  .drift{animation:drift 9s ease-in-out infinite;}
+
+  .before-card{filter:saturate(0.55);}
+
+  .mobile-nav{
+    transform:translateY(-8px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .mobile-nav.open{
+    transform:translateY(0);
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .spin-slow, .spin-slow-rev, .bob, .drift{animation:none !important;}
+  }
+
+  @media (max-width: 767px){
+    .mv-viewport{overflow:visible;}
+    .mv-track{display:block;}
+    .mv-stage{width:100%; display:block; padding-top:2.5rem; padding-bottom:2.5rem;}
+  }
+</style>
+</head>
+<body class="antialiased">
+
+<!-- ============ ICON DEFS ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<g id="i-search"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2 20 20"/></g>
+<g id="i-ear"><path d="M8 14c0-4 2-7 6-7a5 5 0 0 1 5 5c0 3-2 4-2 7a3 3 0 0 1-6 0"/><path d="M8 14v2a2 2 0 0 0 2 2"/></g>
+<g id="i-eye"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/></g>
+<g id="i-list"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1.3"/><circle cx="4" cy="12" r="1.3"/><circle cx="4" cy="18" r="1.3"/></g>
+<g id="i-chart"><path d="M4 20V10M11 20V4M18 20v-7"/><path d="M2 20h20"/></g>
+<g id="i-map"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></g>
+<g id="i-users"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="8.5" r="2.4"/><path d="M16 14.3c2.6.4 4.5 2.4 4.5 5.7"/></g>
+<g id="i-file"><path d="M6 2.5h8l4 4V21a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z"/><path d="M14 2.5V7h4"/><path d="M8 12h8M8 16h8"/></g>
+<g id="i-id"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.2"/><path d="M6.3 16.5c.4-1.6 1.6-2.4 2.7-2.4s2.3.8 2.7 2.4"/><path d="M15 10h4M15 14h4"/></g>
+<g id="i-compass"><circle cx="12" cy="12" r="9.3"/><path d="m15 9-2 6-2 2 2-6Z" fill="currentColor" stroke="none" opacity=".16"/><path d="M14.5 9.5 13 13l-3.5 1.5L11 11z"/></g>
+<g id="i-shield"><path d="M12 2.5 20 6v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6Z"/><path d="m8.6 12 2.2 2.2 4.6-4.6"/></g>
+<g id="i-clock"><circle cx="12" cy="12" r="9.3"/><path d="M12 7v5.2l3.6 2.1"/></g>
+<g id="i-userx"><circle cx="10" cy="8.5" r="3.6"/><path d="M3.2 20c0-4 3-6.7 6.8-6.7s6.8 2.7 6.8 6.7"/><path d="m17 8 4 4M21 8l-4 4"/></g>
+<g id="i-repeat"><path d="M4 7h11a4 4 0 0 1 4 4v1"/><path d="m7 3-3 4 3 4"/><path d="M20 17H9a4 4 0 0 1-4-4v-1"/><path d="m17 21 3-4-3-4"/></g>
+<g id="i-alert"><path d="M12 2.7 22 20.3H2Z"/><path d="M12 9.5v4.4"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/></g>
+<g id="i-flame"><path d="M12 21.5c-4 0-6.6-2.6-6.6-6.2 0-3 1.8-4.7 2.7-7 .7 1.4 1.6 2.2 2.5 2.2-.3-2.7.6-5 3-6.5 0 2.7.9 4 2.4 5.6 1.7 1.8 2.6 3.6 2.6 5.7 0 3.6-2.6 6.2-6.6 6.2Z"/></g>
+<g id="i-clipboard"><rect x="5" y="4.2" width="14" height="17.3" rx="1.6"/><rect x="9" y="2" width="6" height="3.6" rx="1"/><path d="M8.5 11h7M8.5 15h7"/></g>
+<g id="i-network"><circle cx="12" cy="4.5" r="2.1"/><circle cx="5" cy="18" r="2.1"/><circle cx="19" cy="18" r="2.1"/><path d="M12 6.6v4.4M12 11 5 16.2M12 11l7 5.2"/></g>
+<g id="i-trend-down"><path d="m3 7 7.5 7.5L15 10l6 6"/><path d="M21 10.5V16h-5.5"/></g>
+<g id="i-trend-up"><path d="m3 17 7.5-7.5L15 14l6-6"/><path d="M21 13.5V8h-5.5"/></g>
+<g id="i-check"><path d="M4 13.2 9.2 18 20 6.5"/></g>
+<g id="i-arrow-right"><path d="M4 12h15.5"/><path d="m14 6 6 6-6 6"/></g>
+<g id="i-whatsapp"><path d="M4 12a8 8 0 1 1 3.1 6.3L4 19.5l1.3-3.2A7.96 7.96 0 0 1 4 12Z"/><path d="M8.7 10.3h6.6M8.7 13.7h4.6"/></g>
+<g id="i-menu"><path d="M4 7h16M4 12h16M4 17h16"/></g>
+<g id="i-close"><path d="m5 5 14 14M19 5 5 19"/></g>
+<g id="i-chevron-down"><path d="m6 9 6 6 6-6"/></g>
+</defs>
+</svg>
+
+<!-- ============ HEADER ============ -->
+<header id="site-header" class="fixed top-0 inset-x-0 z-50 transition-colors duration-300">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
+    <a href="#hero" class="font-display font-semibold tracking-tight text-lg md:text-xl" id="brand-mark">KALUF E GOMES</a>
+    <nav class="hidden md:flex items-center gap-9 text-sm font-medium" id="desktop-nav">
+      <a href="#metodologia" class="nav-link opacity-80 hover:opacity-100 transition">Metodologia</a>
+      <a href="#diferencial" class="nav-link opacity-80 hover:opacity-100 transition">Diferencial</a>
+      <a href="#resultados" class="nav-link opacity-80 hover:opacity-100 transition">Resultados</a>
+      <a href="#como-funciona" class="nav-link opacity-80 hover:opacity-100 transition">Como funciona</a>
+    </nav>
+    <a href="#" class="whatsapp-link hidden md:inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold bg-[var(--blue-petrol)] text-white hover:bg-[var(--blue-petrol-2)] transition" target="_blank" rel="noopener">
+      Agendar diagnóstico
+      <svg width="15" height="15"><use href="#i-arrow-right"/></svg>
+    </a>
+    <button id="menu-btn" class="md:hidden w-10 h-10 flex items-center justify-center" aria-label="Abrir menu" aria-expanded="false">
+      <svg width="24" height="24" id="menu-icon"><use href="#i-menu"/></svg>
+    </button>
+  </div>
+  <div id="mobile-nav" class="mobile-nav md:hidden glass border-t border-black/5">
+    <div class="px-6 py-6 flex flex-col gap-5 text-base font-medium">
+      <a href="#metodologia" class="mnav-link">Metodologia</a>
+      <a href="#diferencial" class="mnav-link">Diferencial</a>
+      <a href="#resultados" class="mnav-link">Resultados</a>
+      <a href="#como-funciona" class="mnav-link">Como funciona</a>
+      <a href="#" class="whatsapp-link inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold bg-[var(--blue-petrol)] text-white mt-2" target="_blank" rel="noopener">Agendar diagnóstico</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section id="hero" class="relative min-h-[100svh] flex flex-col justify-center overflow-hidden bg-[var(--blue-deep)]">
+  <canvas id="hero-network"></canvas>
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--blue-deep)]/10 to-[var(--blue-deep)]"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-6 md:px-10 w-full pt-28 pb-20">
+    <p class="hero-r eyebrow text-[var(--green)] mb-6">Diagnóstico em RH &amp; Departamento Pessoal</p>
+    <h1 class="hero-r font-display font-semibold text-white text-[2.5rem] leading-[1.08] sm:text-6xl md:text-7xl md:leading-[1.05] max-w-4xl">
+      Transformamos RH e DP em vantagem estratégica.
+    </h1>
+    <p class="hero-r text-white/70 text-lg md:text-xl mt-7 max-w-xl leading-relaxed">
+      Diagnóstico completo para estruturar processos, reduzir riscos e tornar sua operação mais eficiente — com metodologia, não com achismo.
+    </p>
+    <div class="hero-r mt-10 flex flex-wrap items-center gap-5">
+      <a href="#metodologia" class="inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-semibold bg-white text-[var(--blue-deep)] hover:bg-[var(--gray-100)] transition">
+        Conheça a metodologia
+        <svg width="16" height="16"><use href="#i-arrow-right"/></svg>
+      </a>
+      <a href="#" class="whatsapp-link inline-flex items-center gap-2 text-white/85 hover:text-white font-medium transition" target="_blank" rel="noopener">
+        <svg width="18" height="18"><use href="#i-whatsapp"/></svg>
+        Falar no WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <a href="#dor" class="hero-r absolute bottom-9 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 text-xs eyebrow z-10" aria-label="Rolar para saber mais">
+    role para descobrir
+    <svg width="18" height="18" class="bob"><use href="#i-chevron-down"/></svg>
+  </a>
+</section>
+
+<!-- ============ A DOR ============ -->
+<section id="dor" class="relative bg-[var(--gray-100)] py-24 md:py-36">
+  <div class="max-w-7xl mx-auto px-6 md:px-10">
+    <div class="max-w-2xl">
+      <p class="dor-r eyebrow text-[var(--blue-petrol)] mb-5">O ponto de partida</p>
+      <h2 class="dor-r font-display font-semibold text-3xl sm:text-4xl md:text-5xl leading-tight">
+        Toda empresa que cresce sem estrutura, cresce com um custo escondido.
+      </h2>
+      <p class="dor-r text-[var(--gray-600)] text-lg mt-6 leading-relaxed">
+        Antes de falar em solução, é preciso enxergar com clareza onde a operação está sangrando tempo, dinheiro e energia.
+      </p>
+    </div>
+
+    <div class="relative mt-16 md:mt-20">
+      <svg id="dor-lines" class="absolute inset-0 w-full h-full pointer-events-none hidden md:block" aria-hidden="true"></svg>
+      <div id="dor-cards" class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+    <p class="dor-r text-center text-[var(--gray-600)] mt-14 md:mt-16 max-w-xl mx-auto italic">
+      Sozinhos, parecem problemas pequenos. Juntos, formam o principal freio ao crescimento da empresa.
+    </p>
+  </div>
+</section>
+
+<!-- ============ A SOLUÇÃO ============ -->
+<section id="solucao" class="relative bg-[var(--blue-deep)] py-24 md:py-36 overflow-hidden">
+  <div class="absolute inset-0 opacity-40" style="background:radial-gradient(60% 50% at 50% 40%, var(--blue-petrol), transparent 70%);"></div>
+  <div class="relative max-w-7xl mx-auto px-6 md:px-10 grid md:grid-cols-2 gap-14 items-center">
+    <div>
+      <p class="sol-r eyebrow text-[var(--green)] mb-5">A virada</p>
+      <h2 class="sol-r font-display font-semibold text-white text-3xl sm:text-4xl md:text-5xl leading-tight">
+        Transformamos dados em decisões.
+      </h2>
+      <p class="sol-r text-white/70 text-lg mt-6 leading-relaxed max-w-md">
+        Pessoas, processos, documentos e indicadores deixam de ser pontos soltos e passam a compor uma única estrutura, legível e acionável.
+      </p>
+      <div class="sol-r mt-9 flex flex-col gap-3 max-w-sm">
+        <div class="flex items-center gap-3 text-white/85"><svg width="18" height="18" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>Processos documentados e centralizados</div>
+        <div class="flex items-center gap-3 text-white/85"><svg width="18" height="18" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>Indicadores vivos, acompanhados de perto</div>
+        <div class="flex items-center gap-3 text-white/85"><svg width="18" height="18" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>Decisões orientadas por dado, não por urgência</div>
+      </div>
+    </div>
+    <div class="sol-r relative h-[320px] md:h-[420px]">
+      <svg id="solucao-hub" viewBox="0 0 400 400" class="w-full h-full">
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METODOLOGIA ============ -->
+<section id="metodologia" class="relative bg-white">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 pt-24 md:pt-32 pb-14 md:pb-20">
+    <p class="meto-r eyebrow text-[var(--blue-petrol)] mb-5">A metodologia Kaluf e Gomes</p>
+    <h2 class="meto-r font-display font-semibold text-3xl sm:text-4xl md:text-5xl leading-tight max-w-2xl">
+      Cinco etapas. Um só objetivo: estrutura que se sustenta.
+    </h2>
+    <p class="meto-r hidden md:block text-[var(--gray-600)] text-base mt-5 max-w-lg">Role a página para avançar pelas etapas.</p>
+  </div>
+
+  <div class="mv-viewport" id="mv-viewport">
+    <div class="mv-track" id="mv-track">
+
+      <!-- STAGE 01 -->
+      <div class="mv-stage px-6 md:px-10">
+        <div class="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+          <div>
+            <span class="num-tag">01 / 05 — SEMANA 1–2</span>
+            <h3 class="reveal-item font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight">Diagnóstico</h3>
+            <p class="reveal-item text-[var(--gray-600)] text-lg mt-4 max-w-md leading-relaxed">Ouvimos antes de propor. O diagnóstico é o raio-x completo da operação de pessoas antes de qualquer recomendação.</p>
+            <div class="mt-8 grid grid-cols-2 gap-3 max-w-md">
+              <div class="reveal-item flex items-center gap-2.5 text-sm font-medium bg-[var(--gray-100)] rounded-xl px-4 py-3"><svg width="17" height="17" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-ear"/></svg>Escuta ativa</div>
+              <div class="reveal-item flex items-center gap-2.5 text-sm font-medium bg-[var(--gray-100)] rounded-xl px-4 py-3"><svg width="17" height="17" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-list"/></svg>Levantamento de dados</div>
+              <div class="reveal-item flex items-center gap-2.5 text-sm font-medium bg-[var(--gray-100)] rounded-xl px-4 py-3"><svg width="17" height="17" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-eye"/></svg>Observação de rotinas</div>
+              <div class="reveal-item flex items-center gap-2.5 text-sm font-medium bg-[var(--gray-100)] rounded-xl px-4 py-3"><svg width="17" height="17" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-list"/></svg>Questionários direcionados</div>
+              <div class="reveal-item flex items-center gap-2.5 text-sm font-medium bg-[var(--gray-100)] rounded-xl px-4 py-3"><svg width="17" height="17" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-chart"/></svg>Indicadores iniciais</div>
+              <div class="reveal-item flex items-center gap-2.5 text-sm font-medium bg-[var(--gray-100)] rounded-xl px-4 py-3"><svg width="17" height="17" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-map"/></svg>Mapeamento de processos</div>
+            </div>
+          </div>
+          <div class="reveal-item relative h-64 md:h-80 rounded-3xl bg-[var(--gray-100)] overflow-hidden">
+            <svg id="scanner-grid" viewBox="0 0 400 300" class="w-full h-full"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 02 -->
+      <div class="mv-stage px-6 md:px-10">
+        <div class="max-w-7xl mx-auto w-full">
+          <span class="num-tag">02 / 05 — DP + RH</span>
+          <h3 class="reveal-item font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight">DP e RH, trabalhando juntos</h3>
+          <p class="reveal-item text-[var(--gray-600)] text-lg mt-4 max-w-lg leading-relaxed">Duas frentes avançam em paralelo — operação e comportamento — até convergirem em uma única estrutura.</p>
+
+          <div class="mt-10 grid md:grid-cols-2 gap-6">
+            <div class="reveal-item rounded-3xl border border-[var(--gray-300)] p-7">
+              <p class="eyebrow text-[var(--gray-600)] mb-4">Departamento Pessoal</p>
+              <ul class="space-y-3.5 text-[15px]">
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-clipboard"/></svg>Visita e revisão dos processos</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-clock"/></svg>Fechamento da folha</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-userx"/></svg>Turnover</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-userx"/></svg>Absenteísmo e afastamentos</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-shield"/></svg>Controle de ponto</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--blue-petrol)] shrink-0"><use href="#i-list"/></svg>Questionários internos</li>
+              </ul>
+            </div>
+            <div class="reveal-item rounded-3xl border border-[var(--gray-300)] p-7">
+              <p class="eyebrow text-[var(--gray-600)] mb-4">Recursos Humanos</p>
+              <ul class="space-y-3.5 text-[15px]">
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-users"/></svg>Clima organizacional</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-users"/></svg>Integração de novos colaboradores</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-file"/></svg>Fluxogramas</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-id"/></svg>Descrição de cargos</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-compass"/></svg>Missão, visão e valores</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-shield"/></svg>Normas internas</li>
+              </ul>
+            </div>
+          </div>
+          <div class="reveal-item flex items-center justify-center gap-3 mt-7 text-sm font-semibold text-[var(--blue-petrol)]">
+            <span class="h-px w-10 bg-[var(--gray-300)]"></span> convergem em uma estrutura integrada <span class="h-px w-10 bg-[var(--gray-300)]"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 03 -->
+      <div class="mv-stage px-6 md:px-10">
+        <div class="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+          <div>
+            <span class="num-tag">03 / 05 — LEITURA DOS DADOS</span>
+            <h3 class="reveal-item font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight">Central de Inteligência</h3>
+            <p class="reveal-item text-[var(--gray-600)] text-lg mt-4 max-w-md leading-relaxed">Tudo o que foi levantado converge para um painel único — o retrato completo da operação de pessoas.</p>
+          </div>
+          <div class="reveal-item rounded-3xl bg-[var(--blue-deep)] p-6 md:p-8">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="kpi-card bg-white/5 rounded-2xl p-4 flex items-center gap-3">
+                <svg viewBox="0 0 44 44" width="52" height="52" class="kpi-ring shrink-0">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+                  <circle data-target="72" cx="22" cy="22" r="18" fill="none" stroke="var(--green)" stroke-width="4" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 22 22)"/>
+                </svg>
+                <div><p class="font-mono text-white text-lg kpi-num" data-num="0">0</p><p class="text-white/55 text-xs mt-0.5">Aderência a processos</p></div>
+              </div>
+              <div class="kpi-card bg-white/5 rounded-2xl p-4 flex items-center gap-3">
+                <svg viewBox="0 0 44 44" width="52" height="52" class="kpi-ring shrink-0">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+                  <circle data-target="41" cx="22" cy="22" r="18" fill="none" stroke="#6FA8B3" stroke-width="4" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 22 22)"/>
+                </svg>
+                <div><p class="font-mono text-white text-lg kpi-num" data-num="0">0</p><p class="text-white/55 text-xs mt-0.5">Turnover monitorado</p></div>
+              </div>
+              <div class="kpi-card bg-white/5 rounded-2xl p-4 flex items-center gap-3">
+                <svg viewBox="0 0 44 44" width="52" height="52" class="kpi-ring shrink-0">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+                  <circle data-target="58" cx="22" cy="22" r="18" fill="none" stroke="var(--green)" stroke-width="4" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 22 22)"/>
+                </svg>
+                <div><p class="font-mono text-white text-lg kpi-num" data-num="0">0</p><p class="text-white/55 text-xs mt-0.5">Absenteísmo sob controle</p></div>
+              </div>
+              <div class="kpi-card bg-white/5 rounded-2xl p-4 flex items-center gap-3">
+                <svg viewBox="0 0 44 44" width="52" height="52" class="kpi-ring shrink-0">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+                  <circle data-target="80" cx="22" cy="22" r="18" fill="none" stroke="#6FA8B3" stroke-width="4" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 22 22)"/>
+                </svg>
+                <div><p class="font-mono text-white text-lg kpi-num" data-num="0">0</p><p class="text-white/55 text-xs mt-0.5">Tempo de fechamento</p></div>
+              </div>
+            </div>
+            <div class="mt-5 grid grid-cols-6 gap-1.5" id="heatmap"></div>
+            <p class="text-white/35 text-[11px] mt-3 font-mono">mapa ilustrativo — leitura por setor</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 04 -->
+      <div class="mv-stage px-6 md:px-10">
+        <div class="max-w-7xl mx-auto w-full">
+          <span class="num-tag">04 / 05 — A ENTREGA</span>
+          <h3 class="reveal-item font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight">Plano de Ação</h3>
+          <p class="reveal-item text-[var(--gray-600)] text-lg mt-4 max-w-lg leading-relaxed">Da desordem para um plano com prazos, responsáveis e prioridades claras.</p>
+
+          <div class="mt-10 grid md:grid-cols-[1fr_auto_1fr] gap-6 items-center">
+            <div class="reveal-item before-card rounded-3xl border border-[var(--gray-300)] p-7">
+              <p class="eyebrow text-[var(--gray-600)] mb-4">Antes</p>
+              <ul class="space-y-3 text-[15px] text-[var(--gray-600)]">
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="shrink-0"><use href="#i-alert"/></svg>Prioridades pouco claras</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="shrink-0"><use href="#i-repeat"/></svg>Ações soltas, sem dono</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="shrink-0"><use href="#i-userx"/></svg>Dependência de pessoas-chave</li>
+              </ul>
+            </div>
+            <div class="reveal-item hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-[var(--gray-100)] text-[var(--blue-petrol)]"><svg width="20" height="20"><use href="#i-arrow-right"/></svg></div>
+            <div class="reveal-item rounded-3xl border border-[var(--blue-petrol)]/30 bg-[var(--green-soft)] p-7">
+              <p class="eyebrow text-[var(--blue-petrol)] mb-4">Depois</p>
+              <ul class="space-y-3 text-[15px]">
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>Cronograma com prazos definidos</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>Responsáveis por cada ação</li>
+                <li class="flex items-center gap-3"><svg width="16" height="16" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>Indicadores para medir avanço</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 05 -->
+      <div class="mv-stage px-6 md:px-10">
+        <div class="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+          <div>
+            <span class="num-tag">05 / 05 — CONTÍNUO</span>
+            <h3 class="reveal-item font-display font-semibold text-3xl md:text-4xl mt-4 leading-tight">Pós-Projeto</h3>
+            <p class="reveal-item text-[var(--gray-600)] text-lg mt-4 max-w-md leading-relaxed">O diagnóstico entrega o plano. O acompanhamento contínuo é o que sustenta o resultado no tempo.</p>
+          </div>
+          <div class="reveal-item relative h-72 md:h-80 flex items-center justify-center">
+            <div class="absolute w-56 h-56 md:w-64 md:h-64 rounded-full border border-[var(--gray-300)] spin-slow"></div>
+            <div class="absolute w-40 h-40 md:w-48 md:h-48 rounded-full border border-dashed border-[var(--blue-petrol)]/40 spin-slow-rev"></div>
+            <div class="relative z-10 w-24 h-24 md:w-28 md:h-28 rounded-full bg-[var(--blue-deep)] flex items-center justify-center">
+              <svg width="30" height="30" class="text-white"><use href="#i-repeat"/></svg>
+            </div>
+            <span class="absolute top-1 left-1/2 -translate-x-1/2 text-xs font-medium bg-white px-3 py-1.5 rounded-full border border-[var(--gray-300)]">Monitoramento</span>
+            <span class="absolute bottom-3 left-1 text-xs font-medium bg-white px-3 py-1.5 rounded-full border border-[var(--gray-300)]">Ajustes</span>
+            <span class="absolute bottom-3 right-1 text-xs font-medium bg-white px-3 py-1.5 rounded-full border border-[var(--gray-300)]">Novos indicadores</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ DIFERENCIAL ============ -->
+<section id="diferencial" class="bg-[var(--gray-100)] py-24 md:py-36">
+  <div class="max-w-7xl mx-auto px-6 md:px-10">
+    <div class="max-w-2xl">
+      <p class="dif-r eyebrow text-[var(--blue-petrol)] mb-5">O diferencial</p>
+      <h2 class="dif-r font-display font-semibold text-3xl sm:text-4xl md:text-5xl leading-tight">Duas formas de lidar com RH e DP.</h2>
+    </div>
+
+    <div class="mt-14 md:mt-16 rounded-3xl bg-white border border-[var(--gray-300)] overflow-hidden">
+      <div class="grid grid-cols-2 border-b border-[var(--gray-300)]">
+        <div class="p-6 md:p-7"><p class="font-semibold text-[var(--gray-600)]">Modelo tradicional</p></div>
+        <div class="p-6 md:p-7 bg-[var(--blue-deep)]"><p class="font-semibold text-white">Metodologia Kaluf e Gomes</p></div>
+      </div>
+      <div id="dif-rows" class="divide-y divide-[var(--gray-300)]"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTADOS ============ -->
+<section id="resultados" class="bg-white py-24 md:py-36">
+  <div class="max-w-7xl mx-auto px-6 md:px-10">
+    <div class="max-w-2xl">
+      <p class="res-r eyebrow text-[var(--blue-petrol)] mb-5">O que acompanhamos</p>
+      <h2 class="res-r font-display font-semibold text-3xl sm:text-4xl md:text-5xl leading-tight">Os indicadores que orientam cada decisão.</h2>
+      <p class="res-r text-[var(--gray-600)] text-lg mt-6 leading-relaxed">Representação ilustrativa da direção que um projeto de diagnóstico busca em cada frente.</p>
+    </div>
+    <div id="res-grid" class="mt-14 md:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6"></div>
+  </div>
+</section>
+
+<!-- ============ COMO FUNCIONA ============ -->
+<section id="como-funciona" class="bg-[var(--gray-100)] py-24 md:py-36">
+  <div class="max-w-7xl mx-auto px-6 md:px-10">
+    <div class="max-w-2xl">
+      <p class="cf-r eyebrow text-[var(--blue-petrol)] mb-5">Linha do tempo</p>
+      <h2 class="cf-r font-display font-semibold text-3xl sm:text-4xl md:text-5xl leading-tight">Como funciona, semana a semana.</h2>
+    </div>
+    <div id="cf-list" class="mt-14 md:mt-16 grid md:grid-cols-5 gap-6 md:gap-4"></div>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section id="cta-final" class="relative bg-[var(--blue-deep)] py-28 md:py-40 overflow-hidden">
+  <div class="absolute inset-0 opacity-30" style="background:radial-gradient(50% 60% at 50% 100%, var(--blue-petrol), transparent 70%);"></div>
+  <div class="relative max-w-3xl mx-auto px-6 text-center">
+    <p class="cta-r eyebrow text-[var(--green)] mb-6">Kaluf e Gomes</p>
+    <h2 class="cta-r font-display font-semibold text-white text-3xl sm:text-4xl md:text-5xl leading-tight">
+      Empresas fortes são construídas por pessoas, processos e estratégia.
+    </h2>
+    <a href="#" class="whatsapp-link cta-r inline-flex items-center gap-2.5 mt-10 rounded-full px-8 py-4 font-semibold bg-white text-[var(--blue-deep)] hover:bg-[var(--gray-100)] transition" target="_blank" rel="noopener">
+      <svg width="19" height="19"><use href="#i-whatsapp"/></svg>
+      Agendar diagnóstico
+    </a>
+  </div>
+</section>
+
+</main>
+
+<footer class="bg-[var(--black)] py-12">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 flex flex-col md:flex-row items-center justify-between gap-5 text-white/45 text-sm">
+    <span class="font-display text-white/80 font-medium">KALUF E GOMES</span>
+    <span>Franca, SP · Diagnóstico em RH &amp; Departamento Pessoal</span>
+    <a href="#" class="whatsapp-link text-white/70 hover:text-white transition" target="_blank" rel="noopener">(16) 99365-7778</a>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hasGsap = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+  if (hasGsap) gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------- WhatsApp links ---------- */
+  var phone = '5516993657778';
+  var msg = encodeURIComponent('Olá! Gostaria de agendar um diagnóstico com a Kaluf e Gomes.');
+  document.querySelectorAll('.whatsapp-link').forEach(function(el){
+    el.href = 'https://wa.me/' + phone + '?text=' + msg;
+  });
+
+  /* ---------- Mobile nav ---------- */
+  var menuBtn = document.getElementById('menu-btn');
+  var mobileNav = document.getElementById('mobile-nav');
+  var menuIcon = document.getElementById('menu-icon');
+  var navOpen = false;
+  function setNav(open){
+    navOpen = open;
+    mobileNav.classList.toggle('open', open);
+    menuIcon.innerHTML = '<use href="' + (open ? '#i-close' : '#i-menu') + '"/>';
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  menuBtn.addEventListener('click', function(){ setNav(!navOpen); });
+  document.querySelectorAll('.mnav-link').forEach(function(a){
+    a.addEventListener('click', function(){ setNav(false); });
+  });
+
+  /* ---------- Header background on scroll ---------- */
+  var header = document.getElementById('site-header');
+  var brand = document.getElementById('brand-mark');
+  var navLinks = document.querySelectorAll('#desktop-nav .nav-link');
+  function setHeaderLight(light){
+    header.classList.toggle('glass', light);
+    header.classList.toggle('border-b', light);
+    header.classList.toggle('border-black/5', light);
+    brand.style.color = light ? 'var(--gray-900)' : '#fff';
+    navLinks.forEach(function(l){ l.style.color = light ? 'var(--gray-900)' : '#fff'; });
+  }
+  setHeaderLight(false);
+  if (hasGsap){
+    ScrollTrigger.create({
+      trigger: '#hero',
+      start: 'bottom top',
+      onEnter: function(){ setHeaderLight(true); },
+      onLeaveBack: function(){ setHeaderLight(false); }
+    });
+  } else {
+    window.addEventListener('scroll', function(){
+      setHeaderLight(window.scrollY > window.innerHeight * 0.8);
+    });
+  }
+
+  /* ---------- Hero ambient node network ---------- */
+  (function initHeroNetwork(){
+    var canvas = document.getElementById('hero-network');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var w, h, nodes = [];
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize(){
+      w = canvas.width = canvas.offsetWidth * dpr;
+      h = canvas.height = canvas.offsetHeight * dpr;
+    }
+    function makeNodes(){
+      var count = window.innerWidth < 768 ? 26 : 46;
+      nodes = [];
+      for (var i = 0; i < count; i++){
+        nodes.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.18 * dpr,
+          vy: (Math.random() - 0.5) * 0.18 * dpr,
+          r: Math.random() * 1.4 + 0.6
+        });
+      }
+    }
+    function frame(){
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < nodes.length; i++){
+        var n = nodes[i];
+        if (!reduceMotion){
+          n.x += n.vx; n.y += n.vy;
+          if (n.x < 0 || n.x > w) n.vx *= -1;
+          if (n.y < 0 || n.y > h) n.vy *= -1;
+        }
+      }
+      var maxDist = 150 * dpr;
+      for (var a = 0; a < nodes.length; a++){
+        for (var b = a + 1; b < nodes.length; b++){
+          var dx = nodes[a].x - nodes[b].x, dy = nodes[a].y - nodes[b].y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < maxDist){
+            ctx.strokeStyle = 'rgba(111,168,179,' + ((1 - dist / maxDist) * 0.3) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(nodes[a].x, nodes[a].y);
+            ctx.lineTo(nodes[b].x, nodes[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+      for (var k = 0; k < nodes.length; k++){
+        ctx.beginPath();
+        ctx.arc(nodes[k].x, nodes[k].y, nodes[k].r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(160,205,214,0.55)';
+        ctx.fill();
+      }
+      if (!reduceMotion) requestAnimationFrame(frame);
+    }
+    resize(); makeNodes(); frame();
+    if (reduceMotion) frame();
+    window.addEventListener('resize', function(){ resize(); makeNodes(); if (reduceMotion) frame(); });
+  })();
+
+  /* ---------- Generic section reveal helper ---------- */
+  function revealGroup(selector, opts){
+    var els = gsap.utils.toArray(selector);
+    if (!els.length) return;
+    if (!reduceMotion){
+      gsap.set(els, { opacity: 0, y: (opts && opts.y) || 22 });
+    }
+    ScrollTrigger.batch(els, {
+      start: 'top 88%',
+      onEnter: function(batch){
+        gsap.to(batch, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out' });
+      }
+    });
+  }
+
+  if (hasGsap){
+    revealGroup('.hero-r', { y: 16 });
+    if (!reduceMotion) gsap.to('.hero-r', { opacity: 1, y: 0, duration: 0.9, stagger: 0.09, ease: 'power3.out', delay: 0.15 });
+    revealGroup('.dor-r');
+    revealGroup('.sol-r');
+    revealGroup('.meto-r');
+    revealGroup('.dif-r');
+    revealGroup('.res-r');
+    revealGroup('.cf-r');
+    revealGroup('.cta-r');
+  }
+
+  /* ---------- A DOR: cards + connecting lines ---------- */
+  var dorData = [
+    { icon: 'i-network', title: 'Processos descentralizados', text: 'Cada área resolve do seu jeito, sem um padrão comum.' },
+    { icon: 'i-chart', title: 'Ausência de indicadores', text: 'Decisões tomadas no improviso, sem dado que as sustente.' },
+    { icon: 'i-file', title: 'Falta de documentação', text: 'Processos que só existem na memória de quem os executa.' },
+    { icon: 'i-repeat', title: 'Retrabalho constante', text: 'Tempo perdido corrigindo o que já deveria estar certo.' },
+    { icon: 'i-userx', title: 'Dependência de pessoas', text: 'A operação trava quando uma pessoa-chave falta ou sai.' },
+    { icon: 'i-alert', title: 'Erros operacionais', text: 'Pequenas falhas que geram grandes riscos trabalhistas.' },
+    { icon: 'i-flame', title: 'RH apagando incêndios', text: 'Atuação 100% reativa, sem espaço para estratégia.' },
+    { icon: 'i-clipboard', title: 'DP só operacional', text: 'Enxergado como custo, não como inteligência de negócio.' }
+  ];
+  var dorContainer = document.getElementById('dor-cards');
+  dorData.forEach(function(item){
+    var card = document.createElement('div');
+    card.className = 'dor-card card-lift bg-white rounded-2xl p-6 border border-[var(--gray-300)]/70';
+    card.innerHTML =
+      '<div class="w-10 h-10 rounded-xl bg-[var(--gray-100)] flex items-center justify-center text-[var(--blue-petrol)] mb-4">' +
+        '<svg width="19" height="19"><use href="#' + item.icon + '"/></svg>' +
+      '</div>' +
+      '<p class="font-semibold text-[15px] leading-snug">' + item.title + '</p>' +
+      '<p class="text-[var(--gray-600)] text-sm mt-2 leading-relaxed">' + item.text + '</p>';
+    dorContainer.appendChild(card);
+  });
+
+  function drawDorLines(){
+    var svg = document.getElementById('dor-lines');
+    var cards = document.querySelectorAll('.dor-card');
+    if (!svg || !cards.length || window.innerWidth < 768) return;
+    svg.innerHTML = '';
+    var svgRect = svg.getBoundingClientRect();
+    var centers = [];
+    cards.forEach(function(c){
+      var r = c.getBoundingClientRect();
+      centers.push({ x: r.left + r.width / 2 - svgRect.left, y: r.top + r.height / 2 - svgRect.top });
+    });
+    var pairs = [];
+    for (var i = 0; i < centers.length; i++){ pairs.push([i, (i + 1) % centers.length]); }
+    pairs.push([0, 4], [2, 6]);
+    var lines = [];
+    pairs.forEach(function(p){
+      var a = centers[p[0]], b = centers[p[1]];
+      if (!a || !b) return;
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+      line.setAttribute('stroke', 'rgba(28,33,38,0.16)');
+      line.setAttribute('stroke-width', '1.4');
+      svg.appendChild(line);
+      lines.push(line);
+    });
+    if (hasGsap && !reduceMotion){
+      lines.forEach(function(l){
+        var len = l.getTotalLength();
+        gsap.set(l, { strokeDasharray: len, strokeDashoffset: len });
+      });
+      ScrollTrigger.create({
+        trigger: '#dor-cards',
+        start: 'top 55%',
+        once: true,
+        onEnter: function(){
+          gsap.to(lines, { strokeDashoffset: 0, duration: 1.1, stagger: 0.05, ease: 'power2.inOut' });
+        }
+      });
+    }
+  }
+  window.addEventListener('load', drawDorLines);
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(drawDorLines, 200);
+  });
+
+  /* ---------- A SOLUÇÃO: hub network ---------- */
+  (function buildHub(){
+    var svg = document.getElementById('solucao-hub');
+    if (!svg) return;
+    var cx = 200, cy = 200, r = 130;
+    var spokes = 6;
+    var ns = 'http://www.w3.org/2000/svg';
+    var group = document.createElementNS(ns, 'g');
+
+    for (var i = 0; i < spokes; i++){
+      var angle = (Math.PI * 2 * i) / spokes - Math.PI / 2;
+      var x = cx + r * Math.cos(angle);
+      var y = cy + r * Math.sin(angle);
+      var line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+      line.setAttribute('x2', x); line.setAttribute('y2', y);
+      line.setAttribute('stroke', '#2F5A61');
+      line.setAttribute('stroke-width', '1.5');
+      line.classList.add('hub-line');
+      group.appendChild(line);
+
+      var node = document.createElementNS(ns, 'circle');
+      node.setAttribute('cx', x); node.setAttribute('cy', y); node.setAttribute('r', 7);
+      node.setAttribute('fill', i % 2 === 0 ? '#2FAE66' : '#6FA8B3');
+      node.classList.add('hub-node');
+      group.appendChild(node);
+    }
+    var hub = document.createElementNS(ns, 'circle');
+    hub.setAttribute('cx', cx); hub.setAttribute('cy', cy); hub.setAttribute('r', 16);
+    hub.setAttribute('fill', '#F4F5F7');
+    group.appendChild(hub);
+    svg.appendChild(group);
+
+    if (hasGsap){
+      var lines = svg.querySelectorAll('.hub-line');
+      var nodesEls = svg.querySelectorAll('.hub-node');
+      if (!reduceMotion){
+        lines.forEach(function(l){
+          var len = l.getTotalLength();
+          gsap.set(l, { strokeDasharray: len, strokeDashoffset: len });
+        });
+        gsap.set(nodesEls, { scale: 0, transformOrigin: 'center' });
+        gsap.set(hub, { scale: 0, transformOrigin: 'center' });
+      }
+      ScrollTrigger.create({
+        trigger: '#solucao',
+        start: 'top 60%',
+        once: true,
+        onEnter: function(){
+          if (reduceMotion) return;
+          var tl = gsap.timeline();
+          tl.to(hub, { scale: 1, duration: 0.5, ease: 'back.out(2)' })
+            .to(lines, { strokeDashoffset: 0, duration: 0.7, stagger: 0.08, ease: 'power2.out' }, '-=0.2')
+            .to(nodesEls, { scale: 1, duration: 0.4, stagger: 0.08, ease: 'back.out(2.5)' }, '-=0.5');
+        }
+      });
+    }
+  })();
+
+  /* ---------- Scanner grid (stage 01) ---------- */
+  (function buildScanner(){
+    var svg = document.getElementById('scanner-grid');
+    if (!svg) return;
+    var ns = 'http://www.w3.org/2000/svg';
+    for (var i = 1; i < 8; i++){
+      var v = document.createElementNS(ns, 'line');
+      v.setAttribute('x1', i * 50); v.setAttribute('y1', 0);
+      v.setAttribute('x2', i * 50); v.setAttribute('y2', 300);
+      v.setAttribute('stroke', '#DCE0E4'); v.setAttribute('stroke-width', '1');
+      svg.appendChild(v);
+    }
+    for (var j = 1; j < 6; j++){
+      var hLine = document.createElementNS(ns, 'line');
+      hLine.setAttribute('x1', 0); hLine.setAttribute('y1', j * 50);
+      hLine.setAttribute('x2', 400); hLine.setAttribute('y2', j * 50);
+      hLine.setAttribute('stroke', '#DCE0E4'); hLine.setAttribute('stroke-width', '1');
+      svg.appendChild(hLine);
+    }
+    var scanLine = document.createElementNS(ns, 'line');
+    scanLine.setAttribute('x1', 0); scanLine.setAttribute('y1', 0);
+    scanLine.setAttribute('x2', 400); scanLine.setAttribute('y2', 0);
+    scanLine.setAttribute('stroke', '#123B41'); scanLine.setAttribute('stroke-width', '2.5');
+    scanLine.setAttribute('opacity', '0.85');
+    svg.appendChild(scanLine);
+
+    if (hasGsap && !reduceMotion){
+      ScrollTrigger.create({
+        trigger: '#scanner-grid',
+        start: 'top 70%',
+        onEnter: function(){
+          gsap.fromTo(scanLine, { attr: { y1: 0, y2: 0 } }, { attr: { y1: 300, y2: 300 }, duration: 2.4, repeat: -1, ease: 'sine.inOut', yoyo: true });
+        }
+      });
+    }
+  })();
+
+  /* ---------- Heatmap (stage 03) ---------- */
+  (function buildHeatmap(){
+    var el = document.getElementById('heatmap');
+    if (!el) return;
+    var cells = 18;
+    var frag = document.createDocumentFragment();
+    var opacities = [];
+    for (var i = 0; i < cells; i++){
+      var o = (Math.random() * 0.7 + 0.15).toFixed(2);
+      opacities.push(o);
+      var div = document.createElement('div');
+      div.className = 'heat-cell rounded-md h-5';
+      div.style.background = i % 3 === 0 ? 'var(--green)' : '#6FA8B3';
+      div.style.opacity = reduceMotion ? o : '0';
+      frag.appendChild(div);
+    }
+    el.appendChild(frag);
+    if (hasGsap && !reduceMotion){
+      var cellEls = el.querySelectorAll('.heat-cell');
+      ScrollTrigger.create({
+        trigger: '#heatmap',
+        start: 'top 75%',
+        once: true,
+        onEnter: function(){
+          cellEls.forEach(function(c, i){
+            gsap.to(c, { opacity: opacities[i], duration: 0.5, delay: i * 0.03 });
+          });
+        }
+      });
+    }
+  })();
+
+  /* ---------- Diferencial rows ---------- */
+  var difData = [
+    ['Atuação reativa, resolvendo urgências', 'Atuação preventiva e estratégica'],
+    ['Decisões no improviso', 'Decisões orientadas por dados'],
+    ['Processos na cabeça das pessoas', 'Processos documentados e replicáveis'],
+    ['RH e DP vistos como centro de custo', 'RH e DP como inteligência de negócio'],
+    ['Indicadores inexistentes ou soltos', 'Indicadores vivos e monitorados']
+  ];
+  var difContainer = document.getElementById('dif-rows');
+  difData.forEach(function(row){
+    var el = document.createElement('div');
+    el.className = 'dif-r grid grid-cols-2';
+    el.innerHTML =
+      '<div class="p-6 md:p-7 flex items-center gap-3 text-[var(--gray-600)] text-[15px]"><svg width="15" height="15" class="shrink-0 opacity-60"><use href="#i-alert"/></svg>' + row[0] + '</div>' +
+      '<div class="p-6 md:p-7 flex items-center gap-3 text-[15px] font-medium bg-[var(--green-soft)]"><svg width="15" height="15" class="text-[var(--green)] shrink-0"><use href="#i-check"/></svg>' + row[1] + '</div>';
+    difContainer.appendChild(el);
+  });
+
+  /* ---------- Resultados ---------- */
+  var resData = [
+    { icon: 'i-trend-down', dir: 'down', title: 'Turnover', text: 'Menos rotatividade, com causas mapeadas e endereçadas.' },
+    { icon: 'i-trend-down', dir: 'down', title: 'Absenteísmo', text: 'Faltas e afastamentos sob acompanhamento constante.' },
+    { icon: 'i-trend-down', dir: 'down', title: 'Retrabalho', text: 'Processos claros reduzem erro e repetição de tarefas.' },
+    { icon: 'i-trend-up', dir: 'up', title: 'Padronização', text: 'Processos documentados e replicáveis em toda a operação.' },
+    { icon: 'i-trend-up', dir: 'up', title: 'Eficiência operacional', text: 'Tempo de fechamento e rotinas de DP mais enxutos.' },
+    { icon: 'i-trend-up', dir: 'up', title: 'Engajamento', text: 'Clima organizacional mais saudável e mensurado.' }
+  ];
+  var resGrid = document.getElementById('res-grid');
+  resData.forEach(function(item){
+    var up = item.dir === 'up';
+    var card = document.createElement('div');
+    card.className = 'res-r card-lift rounded-2xl border border-[var(--gray-300)] p-6';
+    card.innerHTML =
+      '<div class="flex items-center justify-between mb-5">' +
+        '<div class="w-10 h-10 rounded-xl flex items-center justify-center ' + (up ? 'bg-[var(--green-soft)] text-[var(--green)]' : 'bg-[var(--gray-100)] text-[var(--blue-petrol)]') + '"><svg width="18" height="18"><use href="#' + item.icon + '"/></svg></div>' +
+        '<div class="flex items-end gap-0.5 h-8">' +
+          '<span class="w-1.5 rounded-sm bg-[var(--gray-300)]" style="height:' + (up ? '40%' : '85%') + '"></span>' +
+          '<span class="w-1.5 rounded-sm bg-[var(--gray-300)]" style="height:' + (up ? '58%' : '65%') + '"></span>' +
+          '<span class="w-1.5 rounded-sm ' + (up ? 'bg-[var(--green)]' : 'bg-[var(--blue-petrol)]') + '" style="height:' + (up ? '95%' : '38%') + '"></span>' +
+        '</div>' +
+      '</div>' +
+      '<p class="font-semibold text-lg">' + item.title + '</p>' +
+      '<p class="text-[var(--gray-600)] text-sm mt-2 leading-relaxed">' + item.text + '</p>';
+    resGrid.appendChild(card);
+  });
+
+  /* ---------- Como funciona ---------- */
+  var cfData = [
+    { tag: 'Semana 1', title: 'Kickoff e escuta', text: 'Alinhamento inicial, entrevistas e levantamento de documentos.' },
+    { tag: 'Semana 2', title: 'Imersão e coleta', text: 'Questionários, observação de rotinas e leitura de indicadores.' },
+    { tag: 'Semana 3', title: 'Cruzamento dos dados', text: 'Consolidação na Central de Inteligência e causas-raiz.' },
+    { tag: 'Semana 4', title: 'Entrega do plano', text: 'Apresentação do diagnóstico, cronograma e responsáveis.' },
+    { tag: 'Contínuo', title: 'Pós-projeto', text: 'Acompanhamento e ajuste dos indicadores ao longo do tempo.' }
+  ];
+  var cfList = document.getElementById('cf-list');
+  cfData.forEach(function(step, i){
+    var el = document.createElement('div');
+    el.className = 'cf-r relative pl-5 md:pl-0 md:pt-6 border-l-2 md:border-l-0 md:border-t-2 border-[var(--gray-300)]';
+    el.innerHTML =
+      '<span class="font-mono text-xs text-[var(--blue-petrol)]">' + step.tag + '</span>' +
+      '<p class="font-semibold mt-2">' + step.title + '</p>' +
+      '<p class="text-[var(--gray-600)] text-sm mt-2 leading-relaxed">' + step.text + '</p>';
+    cfList.appendChild(el);
+  });
+
+  /* ---------- Metodologia: pinned horizontal scroll (desktop) ---------- */
+  if (hasGsap){
+    var mm = gsap.matchMedia();
+
+    mm.add('(min-width: 768px)', function(){
+      var track = document.getElementById('mv-track');
+      var stages = gsap.utils.toArray('.mv-stage');
+      var scrollTween = gsap.to(track, {
+        xPercent: -100 * (stages.length - 1),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#mv-viewport',
+          pin: true,
+          scrub: 1,
+          start: 'top top',
+          end: function(){ return '+=' + (track.scrollWidth - window.innerWidth); }
+        }
+      });
+
+      stages.forEach(function(stage){
+        var items = stage.querySelectorAll('.reveal-item');
+        if (!items.length) return;
+        if (!reduceMotion) gsap.set(items, { opacity: 0, y: 26 });
+        ScrollTrigger.create({
+          containerAnimation: scrollTween,
+          trigger: stage,
+          start: 'left 78%',
+          onEnter: function(){
+            if (reduceMotion) return;
+            gsap.to(items, { opacity: 1, y: 0, duration: 0.6, stagger: 0.07, ease: 'power3.out' });
+          },
+          onEnterBack: function(){
+            if (reduceMotion) return;
+            gsap.to(items, { opacity: 1, y: 0, duration: 0.6, stagger: 0.07, ease: 'power3.out' });
+          }
+        });
+      });
+
+      animateKpis(scrollTween);
+
+      return function(){ /* cleanup handled by matchMedia revert */ };
+    });
+
+    mm.add('(max-width: 767px)', function(){
+      revealGroup('#metodologia .reveal-item', { y: 18 });
+      animateKpis(null);
+      return function(){};
+    });
+  } else {
+    document.querySelectorAll('#metodologia .reveal-item').forEach(function(el){ el.style.opacity = 1; });
+  }
+
+  function animateKpis(containerAnimation){
+    var rings = document.querySelectorAll('.kpi-ring circle[data-target]');
+    var nums = document.querySelectorAll('.kpi-num');
+    if (!rings.length) return;
+    var cfg = {
+      trigger: '#metodologia .mv-stage:nth-child(3)',
+      start: containerAnimation ? 'left 70%' : 'top 65%',
+      once: true,
+      onEnter: function(){
+        rings.forEach(function(r){
+          var target = parseFloat(r.getAttribute('data-target'));
+          var offset = 113 - (113 * target) / 100;
+          if (reduceMotion){ r.setAttribute('stroke-dashoffset', offset); return; }
+          gsap.to(r, { strokeDashoffset: offset, duration: 1.2, ease: 'power2.out' });
+        });
+        nums.forEach(function(n, i){
+          var ring = rings[i];
+          if (!ring) return;
+          var target = parseFloat(ring.getAttribute('data-target'));
+          if (reduceMotion){ n.textContent = target + '%'; return; }
+          var obj = { v: 0 };
+          gsap.to(obj, {
+            v: target, duration: 1.2, ease: 'power2.out',
+            onUpdate: function(){ n.textContent = Math.round(obj.v) + '%'; }
+          });
+        });
+      }
+    };
+    if (containerAnimation) cfg.containerAnimation = containerAnimation;
+    ScrollTrigger.create(cfg);
+  }
+
+  if (hasGsap) ScrollTrigger.refresh();
+})();
+</script>
+</body>
+</html>
