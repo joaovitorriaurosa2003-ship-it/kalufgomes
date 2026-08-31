@@ -237,7 +237,10 @@ body{font-family:'Barlow',sans-serif;background:var(--gray-light);color:var(--te
         <div class="card">
           <div class="card-title"><i class="ti ti-users"></i>Absenteísmo por Área</div>
           <div class="card-sub">Percentual médio por departamento</div>
-          <div style="position:relative;width:100%;height:200px"><canvas id="ch-area-abs"></canvas></div>
+          <div style="position:relative;width:100%;height:200px">
+            <canvas id="ch-area-abs"></canvas>
+            <div id="ch-area-abs-empty" style="display:none;align-items:center;justify-content:center;height:200px;color:var(--text-muted);font-size:13px">Sem dados por área</div>
+          </div>
         </div>
       </div>
     </div>
@@ -254,7 +257,9 @@ body{font-family:'Barlow',sans-serif;background:var(--gray-light);color:var(--te
         <div class="card">
           <div class="card-title"><i class="ti ti-chart-donut-3"></i>Composição do Custo</div>
           <div class="card-sub">Breakdown por encargo — período selecionado</div>
-          <div style="position:relative;width:100%;height:210px"><canvas id="ch-encargos"></canvas></div>
+          <div style="position:relative;width:100%;height:210px">
+            <div style="display:flex;align-items:center;justify-content:center;height:210px;color:var(--text-muted);font-size:13px">Sem dados de composição de encargos</div>
+          </div>
         </div>
       </div>
       <div class="card full">
@@ -492,8 +497,8 @@ function renderAbs(){
      cls:'',sub:'colaboradores ativos'},
     {icon:'ti-clock-hour-4',lbl:'Horas Perdidas/Mês',val:fmt(Math.round(hc*8*22*(mAbs/100))),
      cls:'kpi-yellow',sub:'estimativa por absenteísmo'},
-    {icon:'ti-coin',lbl:'Custo do Absenteísmo',val:'R$ '+fmt(Math.round(hc*3800*(mAbs/100))),
-     cls:'',sub:'estimativa mensal'},
+    {icon:'ti-coin',lbl:'Custo do Absenteísmo',val:'-',
+     cls:'',sub:'sem dado de salário médio'},
     {icon:'ti-chart-arrows-vertical',lbl:'Índice de Retenção',val:(100-mTurn).toFixed(1)+'%',
      cls:mTurn<4?'kpi-green':mTurn<6?'kpi-yellow':'kpi-red',sub:'período selecionado'},
   ].map(k=>`<div class="kpi ${k.cls}">
@@ -524,15 +529,23 @@ function renderAbs(){
                tooltip:{backgroundColor:'#2e2e2e',bodyFont:{family:'Barlow'},callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
 
   dc('area-abs');
-  charts['area-abs']=new Chart(document.getElementById('ch-area-abs'),{type:'bar',
-    data:{labels:areaAbs.map(a=>a.area),
-      datasets:[{data:areaAbs.map(a=>a.pct),backgroundColor:areaAbs.map(a=>a.pct>3?RED:a.pct>2?YELLOW:GREEN),borderRadius:6}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#2e2e2e',bodyFont:{family:'Barlow'}}},
-      scales:{
-        x:{ticks:{font:{family:'Barlow',weight:'700',size:11},color:'#8a8078',callback:v=>v+'%'},grid:{color:'rgba(74,74,74,0.06)'}},
-        y:{ticks:{font:{family:'Barlow',weight:'700',size:11},color:'#8a8078'},grid:{display:false}}
-      }}});
+  const temDadosArea=areaAbs.some(a=>a.pct!==null&&a.pct!==undefined);
+  const areaCanvas=document.getElementById('ch-area-abs');
+  const areaEmpty=document.getElementById('ch-area-abs-empty');
+  if(temDadosArea){
+    areaCanvas.style.display='block'; areaEmpty.style.display='none';
+    charts['area-abs']=new Chart(areaCanvas,{type:'bar',
+      data:{labels:areaAbs.map(a=>a.area),
+        datasets:[{data:areaAbs.map(a=>a.pct),backgroundColor:areaAbs.map(a=>a.pct>3?RED:a.pct>2?YELLOW:GREEN),borderRadius:6}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#2e2e2e',bodyFont:{family:'Barlow'}}},
+        scales:{
+          x:{ticks:{font:{family:'Barlow',weight:'700',size:11},color:'#8a8078',callback:v=>v+'%'},grid:{color:'rgba(74,74,74,0.06)'}},
+          y:{ticks:{font:{family:'Barlow',weight:'700',size:11},color:'#8a8078'},grid:{display:false}}
+        }}});
+  }else{
+    areaCanvas.style.display='none'; areaEmpty.style.display='flex';
+  }
 }
 
 /* ══ CUSTO ══ */
@@ -542,14 +555,12 @@ function renderCusto(){
   const mediaFolha=avg(d.folha);
   const lastFolha=d.folha[d.folha.length-1];
   const lastHC=d.headcount[d.headcount.length-1];
-  const custoTotal=lastFolha*1.72; // encargos ~72%
-
   document.getElementById('kpi-custo').innerHTML=[
     {icon:'ti-coin',lbl:'Folha Atual',val:'R$ '+fmt(lastFolha)+'k',cls:'',sub:'mês mais recente'},
-    {icon:'ti-building',lbl:'Custo Total RH',val:'R$ '+fmt(Math.round(custoTotal))+'k',cls:'',sub:'com todos os encargos'},
-    {icon:'ti-user',lbl:'Custo/Colaborador',val:'R$ '+fmt(Math.round(custoTotal*1000/lastHC)),cls:'',sub:'custo médio mensal'},
+    {icon:'ti-building',lbl:'Custo Total RH',val:'-',cls:'',sub:'sem dado de encargos'},
+    {icon:'ti-user',lbl:'Custo/Colaborador',val:'-',cls:'',sub:'sem dado de encargos'},
     {icon:'ti-chart-arrows-vertical',lbl:'Crescimento da Folha',val:'+'+((lastFolha/d.folha[0]-1)*100).toFixed(1)+'%',cls:'kpi-yellow',sub:'vs início do período'},
-    {icon:'ti-percentage',lbl:'Encargos s/ Folha',val:'72%',cls:'',sub:'INSS + FGTS + provisões'},
+    {icon:'ti-percentage',lbl:'Encargos s/ Folha',val:'-',cls:'',sub:'sem dado cadastrado'},
     {icon:'ti-cash',lbl:'Acumulado no Período',val:'R$ '+fmt(totalFolha)+'k',cls:'',sub:'folha bruta total'},
   ].map(k=>`<div class="kpi ${k.cls}">
     <div class="kpi-icon"><i class="ti ${k.icon}"></i></div>
@@ -562,9 +573,7 @@ function renderCusto(){
   charts['folha']=new Chart(document.getElementById('ch-folha'),{type:'line',
     data:{labels:d.meses,datasets:[
       {label:'Folha Bruta',data:d.folha,borderColor:GOLD,backgroundColor:GOLD+'20',fill:true,tension:.4,
-        pointRadius:4,borderWidth:2.5,pointBackgroundColor:GOLD,pointBorderColor:'#fff',pointBorderWidth:2},
-      {label:'Custo Total (c/ encargos)',data:d.folha.map(v=>Math.round(v*1.72)),
-        borderColor:GRAY,backgroundColor:'transparent',tension:.4,pointRadius:4,borderWidth:2,borderDash:[5,4]}
+        pointRadius:4,borderWidth:2.5,pointBackgroundColor:GOLD,pointBorderColor:'#fff',pointBorderWidth:2}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{font:{family:'Barlow',weight:'600',size:11},boxWidth:10,padding:10}},
@@ -573,15 +582,6 @@ function renderCusto(){
         x:{ticks:{font:{family:'Barlow',weight:'700',size:11},color:'#8a8078'},grid:{display:false}},
         y:{ticks:{font:{family:'Barlow',weight:'700',size:11},color:'#8a8078',callback:v=>'R$'+v+'k'},grid:{color:'rgba(74,74,74,0.06)'}}
       }}});
-
-  dc('encargos');
-  charts['encargos']=new Chart(document.getElementById('ch-encargos'),{type:'doughnut',
-    data:{labels:['Salários líquidos','INSS Patronal (20%)','FGTS (8%)','13º Provisionado','Férias + 1/3','Outros encargos'],
-      datasets:[{data:[58,12,5,8,10,7],backgroundColor:[GOLD,GRAY,GOLD2,GRAY2,'#2e2e2e','#a09080'],
-        borderWidth:2,borderColor:'#fff',hoverOffset:6}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
-      plugins:{legend:{position:'bottom',labels:{font:{family:'Barlow',weight:'600',size:10},boxWidth:10,padding:8}},
-               tooltip:{backgroundColor:'#2e2e2e',bodyFont:{family:'Barlow'},callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
 
   const maxFolha=Math.max(...departamentos.map(d=>d.folha));
   document.getElementById('custo-dept').innerHTML=departamentos.map(d=>`
@@ -606,9 +606,9 @@ function renderMovim(){
     {lbl:'Admissões no Período',val:totAdm,icon:'ti-user-plus',status:'ok'},
     {lbl:'Rescisões no Período',val:totResc,icon:'ti-user-minus',status:'warn'},
     {lbl:'Saldo de Headcount',val:(saldo>0?'+':'')+saldo,icon:'ti-arrows-exchange',status:saldo>=0?'ok':'crit'},
-    {lbl:'Custo Médio Rescisão',val:'R$ 7.240',icon:'ti-cash',status:'warn'},
-    {lbl:'Tempo Médio Vaga',val:'18 dias',icon:'ti-clock',status:'ok'},
-    {lbl:'Recontratação 90d',val:'4,2%',icon:'ti-refresh',status:'ok'},
+    {lbl:'Custo Médio Rescisão',val:'-',icon:'ti-cash',status:'ok'},
+    {lbl:'Tempo Médio Vaga',val:'-',icon:'ti-clock',status:'ok'},
+    {lbl:'Recontratação 90d',val:'-',icon:'ti-refresh',status:'ok'},
   ].map(k=>`<div class="bk-card ${k.status}">
     <div class="accent"></div>
     <div class="bk-icon ${k.status}"><i class="ti ${k.icon}"></i></div>
