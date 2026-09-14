@@ -3,11 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moreira & Filhos – Dashboard de Vendas</title>
+<title>Moreira & Filhos · Dashboard Integrado · Kaluf & Gomes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
 /* ── Reset & base ───────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
@@ -160,10 +164,56 @@ tr:hover td{background:#FAFAFE}
 .badge-pos{color:#3B6D11;background:#EAF3DE;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
 .badge-neg{color:#791F1F;background:#FCEBEB;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
 .peak-badge{color:var(--purple-dark);background:var(--purple-light);font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
+
+/* ── LOGIN GATE ── */
+#login-gate{position:fixed;inset:0;background:#2E2C63;display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column}
+#login-gate.hidden{display:none}
+.login-card{background:#fff;border-radius:14px;padding:36px 34px;width:100%;max-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.login-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--purple);text-align:center;margin-bottom:2px}
+.login-sub{font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:22px}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
+.login-field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Nunito',sans-serif;outline:none}
+.login-field input:focus{border-color:var(--green)}
+.login-btn{width:100%;padding:12px;border:none;border-radius:8px;background:var(--purple);color:#fff;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;margin-top:6px;font-family:'Nunito',sans-serif}
+.login-btn:hover{background:var(--purple-dark)}
+.login-btn:disabled{opacity:.6;cursor:default}
+.login-error{color:#B83030;font-size:12px;text-align:center;margin-top:10px;min-height:16px}
+.login-brand{color:rgba(255,255,255,.35);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-top:18px}
+#app-root{display:none}
+#app-root.visible{display:flex}
+#dash-loading{position:fixed;inset:0;background:#2E2C63;display:none;align-items:center;justify-content:center;color:#fff;font-family:'Nunito',sans-serif;font-size:13px;z-index:998}
+#dash-loading.visible{display:flex}
+
+/* ── grupos de navegação / controles compartilhados ── */
+.io-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--text-dark);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.io-btn:hover{background:var(--bg)}
+.io-msg{font-size:11px;font-weight:700;margin-left:4px}
+.io-msg.ok{color:#3B6D11}
+.io-msg.err{color:#B83030}
 </style>
 </head>
 <body>
 
+<!-- LOGIN GATE -->
+<div id="login-gate">
+  <div class="login-card">
+    <div class="login-title">Moreira & Filhos</div>
+    <div class="login-sub">Dashboard Integrado · RH + Vendas</div>
+    <div class="login-field">
+      <label>Senha de acesso</label>
+      <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="fazerLogin()">Entrar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+  <div class="login-brand">Kaluf &amp; Gomes</div>
+</div>
+
+<!-- LOADING -->
+<div id="dash-loading">Carregando dados...</div>
+
+<div id="app-root">
 <!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
 <nav class="sidebar">
 
@@ -192,12 +242,18 @@ tr:hover td{background:#FAFAFE}
     </div>
   </div>
 
-  <div class="nav-section">Análises</div>
+  <div class="nav-section">Vendas</div>
   <a class="nav-item active" id="nav-overview" onclick="setPage('overview')"><i class="ti ti-layout-dashboard"></i>Visão geral</a>
   <a class="nav-item" id="nav-operadores" onclick="setPage('operadores')"><i class="ti ti-users"></i>Operadores</a>
   <a class="nav-item" id="nav-mensal" onclick="setPage('mensal')"><i class="ti ti-calendar"></i>Mensal</a>
   <a class="nav-item" id="nav-horarios" onclick="setPage('horarios')"><i class="ti ti-clock"></i>Por horário</a>
+
+  <div class="nav-section">Recursos Humanos</div>
   <a class="nav-item" id="nav-folha" onclick="setPage('folha')"><i class="ti ti-report-money"></i>Folha de Pagamento</a>
+  <a class="nav-item" id="nav-sim" onclick="setPage('sim')"><i class="ti ti-calculator"></i>Simulador de Rescisão</a>
+
+  <div class="nav-section">Cruzados</div>
+  <a class="nav-item" id="nav-cruzados" onclick="setPage('cruzados')"><i class="ti ti-chart-dots"></i>Indicadores Cruzados</a>
 
   <div class="filter-wrap">
     <h4>Filtrar operadores</h4>
@@ -401,112 +457,97 @@ tr:hover td{background:#FAFAFE}
             <th style="text-align:right">Líquido Geral</th>
             <th style="text-align:right">INSS Total</th>
             <th style="text-align:right">FGTS</th>
+            <th style="text-align:right">Turnover</th>
           </tr></thead>
           <tbody id="tbl-folha"></tbody>
         </table>
       </div>
     </div>
 
+    <!-- SIMULADOR DE RESCISÃO -->
+    <div class="page" id="page-sim">
+      <div class="card full">
+        <div class="card-title">Simulador de Rescisão</div>
+        <div class="card-sub">Cálculo aproximado com base nas tabelas de INSS e IRRF vigentes · uso interno, não substitui a folha oficial</div>
+        <div class="row2">
+          <div>
+            <div class="kpi" style="margin-bottom:10px">
+              <label>Salário Base (R$)</label>
+              <input type="number" id="sim-salario" value="1800" step="50" oninput="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
+            </div>
+            <div class="kpi" style="margin-bottom:10px">
+              <label>Meses Trabalhados no Ano</label>
+              <input type="number" id="sim-meses" value="6" min="0" max="12" oninput="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
+            </div>
+            <div class="kpi" style="margin-bottom:10px">
+              <label>Dias Trabalhados no Mês da Rescisão</label>
+              <input type="number" id="sim-dias" value="15" min="0" max="30" oninput="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
+            </div>
+            <div class="kpi" style="margin-bottom:10px">
+              <label>Saldo FGTS Depositado (R$)</label>
+              <input type="number" id="sim-fgts" value="900" step="50" oninput="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
+            </div>
+            <div class="kpi">
+              <label>Tipo de Desligamento</label>
+              <select id="sim-tipo" onchange="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
+                <option value="sem_justa_causa">Sem justa causa</option>
+                <option value="pedido_demissao">Pedido de demissão</option>
+                <option value="acordo">Acordo (Art. 484-A)</option>
+              </select>
+            </div>
+          </div>
+          <div id="resc-output"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INDICADORES CRUZADOS -->
+    <div class="page" id="page-cruzados">
+      <div class="no-data-note" style="font-size:12px;color:var(--text-muted);background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px">Cruza dados reais de Vendas (2025–2026) com dados reais de Folha de Pagamento (Jan–Ago/2026). Só entram os meses em que ambas as fontes têm dado apurado — atualmente Jan a Mai/2026.</div>
+      <div class="kpi-grid" id="kpi-cruzados"></div>
+      <div class="row2">
+        <div class="card full">
+          <div class="card-title">Faturamento por Funcionário</div>
+          <div class="card-sub">Vendas do mês ÷ colaboradores trabalhando no mês</div>
+          <div style="position:relative;width:100%;height:230px">
+            <canvas id="c-cruz-fat"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Turnover vs. Vendas</div>
+          <div style="position:relative;width:100%;height:210px">
+            <canvas id="c-cruz-turn"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Custo de Pessoal / Receita</div>
+          <div class="card-sub">(Líquido + INSS + FGTS) ÷ vendas do mês</div>
+          <div style="position:relative;width:100%;height:210px">
+            <canvas id="c-cruz-custo"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card full">
+        <div class="card-title">Tabela Cruzada</div>
+        <table>
+          <thead><tr>
+            <th>Mês</th><th style="text-align:right">Vendas</th><th style="text-align:right">Colaboradores</th>
+            <th style="text-align:right">Fat./Func.</th><th style="text-align:right">Custo Pessoal</th>
+            <th style="text-align:right">Custo/Receita</th><th style="text-align:right">Turnover</th>
+          </tr></thead>
+          <tbody id="tbl-cruzados"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
+</div><!-- /app-root -->
 
 <script>
-const ALL_OPS=[
-  {id:'12345',name:'12345 - Assist. SELF',cupons:7908,itens:30548,ticket:35.93,total:284156.45,generic:true},
-  {id:'21',name:'21 - DANIELE',cupons:3569,itens:28408,ticket:77.21,total:275555.33,generic:false},
-  {id:'32',name:'32 - LAIS',cupons:4148,itens:27128,ticket:64.84,total:268956.28,generic:false},
-  {id:'23',name:'23 - MONAISA',cupons:2932,itens:24731,ticket:86.48,total:253547.52,generic:false},
-  {id:'51',name:'51 - LILIANE R.',cupons:2839,itens:20988,ticket:72.81,total:206694.96,generic:false},
-  {id:'27',name:'27 - CARINA',cupons:2161,itens:20277,ticket:89.56,total:193548.26,generic:false},
-  {id:'44',name:'44 - MICHELE',cupons:2964,itens:19112,ticket:64.01,total:189726.16,generic:false},
-  {id:'28',name:'28 - DAIANE',cupons:2275,itens:15852,ticket:77.19,total:175602.65,generic:false},
-  {id:'43',name:'43 - JOANA',cupons:1968,itens:13788,ticket:70.72,total:139186.25,generic:false},
-  {id:'22',name:'22 - INGRID',cupons:1471,itens:12578,ticket:89.62,total:131835.63,generic:false},
-  {id:'38',name:'38 - ALESSANDRA',cupons:543,itens:4665,ticket:81.24,total:44112.86,generic:false},
-  {id:'50',name:'50 - DOMINICK',cupons:462,itens:3321,ticket:79.02,total:36507.92,generic:false},
-  {id:'42',name:'42 - Lauane',cupons:342,itens:3234,ticket:105.50,total:36081.56,generic:false},
-  {id:'30',name:'30 - BIANCA',cupons:466,itens:3750,ticket:75.10,total:34994.70,generic:false},
-  {id:'31',name:'31 - ANA KAROLINY',cupons:234,itens:1872,ticket:80.50,total:18837.71,generic:false},
-  {id:'60',name:'60 - Op. Manhã',cupons:663,itens:1209,ticket:14.41,total:9555.09,generic:true},
-  {id:'71',name:'71 - Kelly',cupons:76,itens:738,ticket:113.88,total:8655.10,generic:false},
-  {id:'61',name:'61 - Op. Tarde',cupons:202,itens:359,ticket:13.35,total:2697.21,generic:true},
-  {id:'41',name:'41 - ROSANA',cupons:9,itens:182,ticket:182.77,total:1644.94,generic:false},
-];
-const MENSAL_ALL=[
-  {mes:'Jan/2025',ano:2025,cli:37262,total:2310086.87,ticket:62.00,varV:null,   pico:'19:00',valPico:265772.56},
-  {mes:'Fev/2025',ano:2025,cli:34780,total:2238470.00,ticket:64.36,varV:-3.10,  pico:'19:00',valPico:261463.45},
-  {mes:'Mar/2025',ano:2025,cli:38944,total:2476439.20,ticket:63.59,varV:10.63,  pico:'19:00',valPico:273560.06},
-  {mes:'Abr/2025',ano:2025,cli:37799,total:2439864.95,ticket:64.55,varV:-1.48,  pico:'18:00',valPico:280815.31},
-  {mes:'Mai/2025',ano:2025,cli:39325,total:2578171.32,ticket:65.56,varV:5.67,   pico:'18:00',valPico:302080.10},
-  {mes:'Jun/2025',ano:2025,cli:36393,total:2332864.21,ticket:64.10,varV:-9.51,  pico:'18:00',valPico:276175.31},
-  {mes:'Jul/2025',ano:2025,cli:37490,total:2362945.43,ticket:63.03,varV:1.29,   pico:'18:00',valPico:278339.14},
-  {mes:'Ago/2025',ano:2025,cli:36958,total:2415055.81,ticket:65.35,varV:2.21,   pico:'18:00',valPico:264199.98},
-  {mes:'Set/2025',ano:2025,cli:35467,total:2272432.97,ticket:64.07,varV:-5.91,  pico:'18:00',valPico:274494.52},
-  {mes:'Out/2025',ano:2025,cli:36729,total:2333166.50,ticket:63.52,varV:2.67,   pico:'18:00',valPico:265763.96},
-  {mes:'Nov/2025',ano:2025,cli:36077,total:2315227.27,ticket:64.17,varV:-0.77,  pico:'11:00',valPico:261598.21},
-  {mes:'Dez/2025',ano:2025,cli:33544,total:2218301.03,ticket:66.13,varV:-4.44,  pico:'11:00',valPico:236391.57},
-  {mes:'Jan/2026',ano:2026,cli:32449,total:2047075.97,ticket:63.09,varV:-7.72,  pico:'19:00',valPico:228751.38},
-  {mes:'Fev/2026',ano:2026,cli:34062,total:2210462.45,ticket:64.90,varV:7.98,   pico:'19:00',valPico:247579.97},
-  {mes:'Mar/2026',ano:2026,cli:36089,total:2321649.12,ticket:64.33,varV:5.03,   pico:'11:00',valPico:256577.23},
-  {mes:'Abr/2026',ano:2026,cli:37687,total:2430802.67,ticket:64.50,varV:4.70,   pico:'18:00',valPico:281606.05},
-  {mes:'Mai/2026',ano:2026,cli:26750,total:1800036.48,ticket:67.29,varV:-25.95, pico:'18:00',valPico:205474.71},
-];
-
-const HORARIOS_ALL={
-  2025:[
-    {h:'06:00',cli:31,    total:383.14,    ticket:12.36, pct:0.00},
-    {h:'07:00',cli:23095, total:773045.67, ticket:33.47, pct:2.96},
-    {h:'08:00',cli:22555, total:1217969.38,ticket:54.00, pct:4.67},
-    {h:'09:00',cli:24862, total:1636131.51,ticket:65.81, pct:6.27},
-    {h:'10:00',cli:27715, total:2005104.89,ticket:72.35, pct:7.69},
-    {h:'11:00',cli:42503, total:2725734.57,ticket:64.13, pct:10.45},
-    {h:'12:00',cli:35330, total:2117606.66,ticket:59.94, pct:8.12},
-    {h:'13:00',cli:19369, total:1216473.84,ticket:62.81, pct:4.67},
-    {h:'14:00',cli:16814, total:1165653.95,ticket:69.33, pct:4.47},
-    {h:'15:00',cli:20444, total:1340633.93,ticket:65.58, pct:5.14},
-    {h:'16:00',cli:26188, total:1694280.11,ticket:64.70, pct:6.50},
-    {h:'17:00',cli:36782, total:2334660.34,ticket:63.47, pct:8.95},
-    {h:'18:00',cli:42346, total:2957434.97,ticket:69.84, pct:11.34},
-    {h:'19:00',cli:39169, total:2887846.48,ticket:73.73, pct:11.08},
-    {h:'20:00',cli:27620, total:1863348.45,ticket:67.46, pct:7.15},
-    {h:'21:00',cli:2394,  total:138478.84, ticket:57.84, pct:0.53},
-  ],
-  2026:[
-    {h:'07:00',cli:6196,  total:402373.23, ticket:64.94,pct:3.09},
-    {h:'08:00',cli:10242, total:665198.75, ticket:64.95,pct:5.11},
-    {h:'09:00',cli:13010, total:845833.51, ticket:65.01,pct:6.49},
-    {h:'10:00',cli:15584, total:1012441.29,ticket:64.97,pct:7.77},
-    {h:'11:00',cli:21381, total:1388075.16,ticket:64.92,pct:10.65},
-    {h:'12:00',cli:16444, total:1067486.12,ticket:64.92,pct:8.19},
-    {h:'13:00',cli:9421,  total:612203.18, ticket:64.98,pct:4.70},
-    {h:'14:00',cli:9106,  total:592004.07, ticket:65.01,pct:4.54},
-    {h:'15:00',cli:10282, total:668377.51, ticket:65.00,pct:5.13},
-    {h:'16:00',cli:13401, total:871089.10, ticket:65.00,pct:6.69},
-    {h:'17:00',cli:17690, total:1148906.05,ticket:64.95,pct:8.82},
-    {h:'18:00',cli:21448, total:1393017.72,ticket:64.95,pct:10.69},
-    {h:'19:00',cli:21101, total:1370193.74,ticket:64.94,pct:10.52},
-    {h:'20:00',cli:13979, total:907046.43, ticket:64.89,pct:6.96},
-    {h:'21:00',cli:1297,  total:84017.86,  ticket:64.78,pct:0.64},
-  ],
-  todos:[
-    {h:'06:00',cli:31,    total:429.70,    ticket:13.86, pct:0.00},
-    {h:'07:00',cli:29291, total:1175418.90,ticket:40.13, pct:3.00},
-    {h:'08:00',cli:32797, total:1883168.13,ticket:57.42, pct:4.81},
-    {h:'09:00',cli:37872, total:2481965.02,ticket:65.53, pct:6.34},
-    {h:'10:00',cli:43299, total:3017546.18,ticket:69.69, pct:7.71},
-    {h:'11:00',cli:63884, total:4113809.73,ticket:64.40, pct:10.51},
-    {h:'12:00',cli:51774, total:3185092.78,ticket:61.52, pct:8.14},
-    {h:'13:00',cli:28790, total:1828677.02,ticket:63.52, pct:4.67},
-    {h:'14:00',cli:25920, total:1757658.02,ticket:67.81, pct:4.49},
-    {h:'15:00',cli:30726, total:2009011.44,ticket:65.39, pct:5.13},
-    {h:'16:00',cli:39589, total:2565369.21,ticket:64.80, pct:6.55},
-    {h:'17:00',cli:54472, total:3483566.39,ticket:63.95, pct:8.90},
-    {h:'18:00',cli:63794, total:4350452.69,ticket:68.19, pct:11.11},
-    {h:'19:00',cli:60270, total:4258040.22,ticket:70.65, pct:10.88},
-    {h:'20:00',cli:41599, total:2770394.88,ticket:66.60, pct:7.08},
-    {h:'21:00',cli:3691,  total:222496.70, ticket:60.28, pct:0.57},
-  ]
-};
+let ALL_OPS=[];
+let MENSAL_ALL=[];
+let HORARIOS_ALL={2025:[],2026:[],todos:[]};
 
 let anoSel='todos';
 let MENSAL=MENSAL_ALL;
@@ -520,7 +561,7 @@ let currentPage='overview';
 const fmtBRL=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtN=v=>v.toLocaleString('pt-BR');
 const shortName=n=>n.replace(/^\d+\s*-\s*/,'').split(' ')[0];
-const PAGE_TITLES={overview:'Visão geral',operadores:'Operadores',mensal:'Mensal',horarios:'Por horário',folha:'Folha de Pagamento'};
+const PAGE_TITLES={overview:'Visão geral',operadores:'Operadores',mensal:'Mensal',horarios:'Por horário',folha:'Folha de Pagamento',sim:'Simulador de Rescisão',cruzados:'Indicadores Cruzados'};
 
 function setAno(v){
   anoSel=v;
@@ -552,11 +593,13 @@ function getFiltered(){
 }
 function setPage(p){
   currentPage=p;
-  ['overview','operadores','mensal','horarios','folha'].forEach(x=>{
+  ['overview','operadores','mensal','horarios','folha','sim','cruzados'].forEach(x=>{
     document.getElementById('page-'+x).classList.toggle('active',x===p);
     document.getElementById('nav-'+x).classList.toggle('active',x===p);
   });
   document.getElementById('page-title').textContent=PAGE_TITLES[p];
+  if(p==='cruzados'){ renderCruzados(); return; }
+  if(p==='sim'){ calcResc(); return; }
   refresh();
 }
 function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
@@ -730,6 +773,7 @@ function refresh(){
     const totH=document.createElement('tr');totH.className='total-row';
     totH.innerHTML=`<td>Total</td><td style="text-align:right">${fmtN(tC)}</td><td style="text-align:right">${fmtBRL(tH)}</td><td style="text-align:right">${fmtBRL(tH/Math.max(tC,1))}</td><td style="text-align:right">100,00%</td><td></td>`;
     tbody.appendChild(totH);
+  }
 
   if(currentPage==='folha'){
     const F=FOLHA_DATA;
@@ -779,6 +823,7 @@ function refresh(){
     const tbody=document.getElementById('tbl-folha');tbody.innerHTML='';
     F.forEach(d=>{
       const tr=document.createElement('tr');
+      const turn=d.trabalhando?(d.demitidos/d.trabalhando*100):0;
       tr.innerHTML=`<td><b>${d.mes}</b></td>
         <td style="text-align:right">${d.n_emp}</td>
         <td style="text-align:right">${d.trabalhando}</td>
@@ -786,7 +831,8 @@ function refresh(){
         <td style="text-align:right">${d.ferias}</td>
         <td style="text-align:right"><b>${fmtBRL(d.liquido)}</b></td>
         <td style="text-align:right">${fmtBRL(d.inss)}</td>
-        <td style="text-align:right">${fmtBRL(d.fgts)}</td>`;
+        <td style="text-align:right">${fmtBRL(d.fgts)}</td>
+        <td style="text-align:right">${turn.toFixed(2)}%</td>`;
       tbody.appendChild(tr);
     });
     // Total row
@@ -794,25 +840,263 @@ function refresh(){
     const sumInss=F.reduce((a,d)=>a+d.inss,0);
     const sumFgts=F.reduce((a,d)=>a+d.fgts,0);
     const totR=document.createElement('tr');totR.className='total-row';
-    totR.innerHTML=`<td>Total</td><td></td><td></td><td></td><td></td><td style="text-align:right"><b>${fmtBRL(sumLiq)}</b></td><td style="text-align:right">${fmtBRL(sumInss)}</td><td style="text-align:right">${fmtBRL(sumFgts)}</td>`;
+    totR.innerHTML=`<td>Total</td><td></td><td></td><td></td><td></td><td style="text-align:right"><b>${fmtBRL(sumLiq)}</b></td><td style="text-align:right">${fmtBRL(sumInss)}</td><td style="text-align:right">${fmtBRL(sumFgts)}</td><td></td>`;
     tbody.appendChild(totR);
-  }
   }
 }
 
 
-const FOLHA_DATA=[
-  {mes:'Jan/2026',liquido:119951.25,inss:55710.74,fgts:11193.05,n_emp:70,trabalhando:57,demitidos:12,ferias:0},
-  {mes:'Fev/2026',liquido:115541.44,inss:58196.96,fgts:12119.20,n_emp:70,trabalhando:62,demitidos:7,ferias:0},
-  {mes:'Mar/2026',liquido:119506.90,inss:60451.64,fgts:12595.26,n_emp:67,trabalhando:61,demitidos:4,ferias:0},
-  {mes:'Abr/2026',liquido:124529.99,inss:67377.42,fgts:13241.07,n_emp:65,trabalhando:57,demitidos:5,ferias:2},
-  {mes:'Mai/2026',liquido:123846.92,inss:67828.63,fgts:13313.42,n_emp:67,trabalhando:59,demitidos:7,ferias:0},
-  {mes:'Jun/2026',liquido:123488.13,inss:65981.78,fgts:12876.73,n_emp:63,trabalhando:57,demitidos:3,ferias:2},
-  {mes:'Jul/2026',liquido:121922.05,inss:65590.91,fgts:12593.19,n_emp:64,trabalhando:57,demitidos:6,ferias:0},
-  {mes:'Ago/2026',liquido:125108.71,inss:67358.71,fgts:13163.65,n_emp:64,trabalhando:58,demitidos:5,ferias:0},
-];
-buildSidebar();
-refresh();
+/* ═══════════ SIMULADOR DE RESCISÃO ═══════════ */
+function calcINSS(sal){
+  const tab=[[1518.00,.075],[2793.88,.09],[4190.83,.12],[8157.41,.14]];
+  let inss=0,ant=0;
+  for(const[teto,aliq]of tab){
+    if(sal<=ant)break;
+    inss+=( Math.min(sal,teto)-ant )*aliq;
+    ant=teto;
+  }
+  return inss;
+}
+function calcIRRF(base){
+  const tab=[[2259.20,0,0],[2826.65,.075,169.44],[3751.05,.15,381.44],[4664.68,.225,662.77],[Infinity,.275,896.00]];
+  for(const[lim,aliq,ded]of tab){if(base<=lim)return Math.max(0,base*aliq-ded);}
+  return 0;
+}
+function rescRow(lbl,val,neg){
+  return`<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--purple-light);border-radius:6px;font-size:13px">
+    <span style="color:var(--text-muted);font-weight:600">${lbl}</span>
+    <span style="font-weight:800${neg?';color:#D85A30':''}">${neg?'− ':''} ${fmtBRL(val)}</span></div>`;
+}
+function rescRowTotal(lbl,val,cor){
+  return`<div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;background:${cor}18;border:1px solid ${cor}40;margin-top:4px">
+    <span style="font-weight:800">${lbl}</span>
+    <span style="font-weight:900;color:${cor};font-size:17px">${fmtBRL(val)}</span></div>`;
+}
+function calcResc(){
+  const sal=parseFloat(document.getElementById('sim-salario').value)||0;
+  const meses=parseFloat(document.getElementById('sim-meses').value)||0;
+  const dias=parseInt(document.getElementById('sim-dias').value)||0;
+  const fgtsDepositado=parseFloat(document.getElementById('sim-fgts').value)||0;
+  const tipo=document.getElementById('sim-tipo').value;
+
+  const saldo=sal*(dias/30);
+  const dec13=sal*(meses/12);
+  const ferias=sal*(meses/12);
+  const terco=ferias/3;
+
+  let aviso=0, multaFgts=0;
+  if(tipo==='sem_justa_causa'){ aviso=sal; multaFgts=fgtsDepositado*0.40; }
+  if(tipo==='acordo'){ aviso=sal*0.5; multaFgts=fgtsDepositado*0.20; }
+  // pedido_demissao: sem aviso indenizado pela empresa, sem multa FGTS
+
+  const baseFGTS=saldo+dec13;
+  const novoFgts=baseFGTS*0.08;
+
+  const bruto=saldo+dec13+ferias+terco+aviso;
+  const inss=calcINSS(saldo);
+  const irrf=tipo==='sem_justa_causa'?0:calcIRRF(Math.max(0,saldo-inss));
+  const liquido=bruto-inss-irrf;
+  const fgtsASacar=fgtsDepositado+novoFgts+multaFgts;
+
+  const inssPat=saldo*0.20;
+  const ratTerceiros=saldo*0.038;
+  const custoTotal=bruto+inssPat+novoFgts+multaFgts+ratTerceiros;
+
+  const nomeTipo={sem_justa_causa:'Sem justa causa',pedido_demissao:'Pedido de demissão',acordo:'Acordo (Art. 484-A CLT)'};
+
+  document.getElementById('resc-output').innerHTML=`
+    <div>
+      <div style="font-size:13px;font-weight:800;color:var(--purple-dark);margin-bottom:8px"><i class="ti ti-user"></i> Verbas ao Colaborador</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${rescRow('Saldo de salário ('+dias+' dias)',saldo)}
+        ${rescRow('13º proporcional ('+meses+' meses)',dec13)}
+        ${rescRow('Férias proporcionais',ferias)}
+        ${rescRow('1/3 constitucional s/ férias',terco)}
+        ${aviso?rescRow('Aviso prévio indenizado',aviso):''}
+        ${rescRow('FGTS a sacar (saldo + novo depósito'+(multaFgts?' + multa':'')+')',fgtsASacar)}
+        <div style="height:4px"></div>
+        ${rescRow('(-) INSS descontado',inss,true)}
+        ${irrf>0?rescRow('(-) IRRF estimado',irrf,true):''}
+        ${rescRowTotal('Líquido ao colaborador',liquido,'#3B8A3B')}
+      </div>
+      <div style="font-size:13px;font-weight:800;color:var(--purple-dark);margin:16px 0 8px"><i class="ti ti-building"></i> Custo Total Empregador</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${rescRow('Verbas brutas pagas',bruto)}
+        ${rescRow('INSS patronal (20%)',inssPat)}
+        ${rescRow('FGTS (8% sobre verbas)',novoFgts)}
+        ${multaFgts?rescRow('Multa FGTS (empresa paga)',multaFgts):''}
+        ${rescRow('RAT + Terceiros (~3,8%)',ratTerceiros)}
+        <div style="height:4px"></div>
+        ${rescRowTotal('Custo total empregador',custoTotal,'#D85A30')}
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;background:var(--purple-light);border-radius:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Tipo de desligamento</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-dark)">${nomeTipo[tipo]}</div>
+        <div style="font-size:11px;font-weight:500;color:var(--text-muted);margin-top:2px">Salário: ${fmtBRL(sal)} · ${meses} mes(es) trabalhados · ${dias} dias no mês da rescisão</div>
+      </div>
+    </div>`;
+}
+
+/* ═══════════ INDICADORES CRUZADOS (RH + Vendas) ═══════════ */
+const _cruzCharts={};
+function _setCruzChart(id,cfg){
+  if(_cruzCharts[id]) _cruzCharts[id].destroy();
+  _cruzCharts[id]=new Chart(document.getElementById(id),cfg);
+}
+function renderCruzados(){
+  // Interseção: meses em que temos vendas mensais E folha real
+  const cruz=FOLHA_DATA.map(f=>{
+    const v=MENSAL_ALL.find(m=>m.mes===f.mes);
+    if(!v) return null;
+    const custoPessoal=f.liquido+f.inss+f.fgts;
+    return {
+      mes:f.mes, vendas:v.total, colaboradores:f.trabalhando,
+      fatPorFunc: f.trabalhando? v.total/f.trabalhando : null,
+      custoPessoal, custoReceita: v.total? custoPessoal/v.total*100 : null,
+      turnover: f.trabalhando? f.demitidos/f.trabalhando*100 : null
+    };
+  }).filter(Boolean);
+
+  document.getElementById('kpi-cruzados').innerHTML = cruz.length ? (()=>{
+    const last=cruz[cruz.length-1];
+    const avgFat=cruz.reduce((s,c)=>s+c.fatPorFunc,0)/cruz.length;
+    const avgCR=cruz.reduce((s,c)=>s+c.custoReceita,0)/cruz.length;
+    return `
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Faturamento/Funcionário (${last.mes})</label><div class="kpi-val">${fmtBRL(last.fatPorFunc)}</div><div class="kpi-sub">média do período: ${fmtBRL(avgFat)}</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-scale"></i></div><label>Custo Pessoal / Receita (${last.mes})</label><div class="kpi-val">${last.custoReceita.toFixed(1)}%</div><div class="kpi-sub">média do período: ${avgCR.toFixed(1)}%</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar"></i></div><label>Meses cruzados</label><div class="kpi-val">${cruz.length}</div><div class="kpi-sub">${cruz[0].mes} – ${last.mes}</div></div>`;
+  })() : '<div class="kpi"><label>Sem meses em comum entre Vendas e Folha</label></div>';
+
+  if(!cruz.length) return;
+
+  _setCruzChart('c-cruz-fat',{type:'bar',
+    data:{labels:cruz.map(c=>c.mes),datasets:[{label:'Faturamento por Funcionário',data:cruz.map(c=>Math.round(c.fatPorFunc)),backgroundColor:PURPLE,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
+      scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  _setCruzChart('c-cruz-turn',{type:'line',
+    data:{labels:cruz.map(c=>c.mes),datasets:[
+      {label:'Turnover (%)',data:cruz.map(c=>+c.turnover.toFixed(2)),borderColor:'#D85A30',backgroundColor:'rgba(216,90,48,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2,yAxisID:'y'},
+      {label:'Vendas (R$ mil)',data:cruz.map(c=>Math.round(c.vendas/1000)),borderColor:GREEN,backgroundColor:'transparent',fill:false,tension:.3,pointRadius:4,borderWidth:2,borderDash:[5,3],yAxisID:'y1'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10.5}}}},
+      scales:{
+        y:{position:'left',ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},
+        y1:{position:'right',ticks:{callback:v=>'R$'+v+'k'},grid:{display:false}},
+        x:{grid:{display:false}}
+      }}
+  });
+
+  _setCruzChart('c-cruz-custo',{type:'line',
+    data:{labels:cruz.map(c=>c.mes),datasets:[{label:'Custo Pessoal / Receita (%)',data:cruz.map(c=>+c.custoReceita.toFixed(2)),borderColor:PURPLE,backgroundColor:'rgba(71,68,142,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+      scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  const tbody=document.getElementById('tbl-cruzados');
+  tbody.innerHTML=cruz.map(c=>`<tr>
+    <td><b>${c.mes}</b></td>
+    <td style="text-align:right">${fmtBRL(c.vendas)}</td>
+    <td style="text-align:right">${c.colaboradores}</td>
+    <td style="text-align:right">${fmtBRL(c.fatPorFunc)}</td>
+    <td style="text-align:right">${fmtBRL(c.custoPessoal)}</td>
+    <td style="text-align:right">${c.custoReceita.toFixed(1)}%</td>
+    <td style="text-align:right">${c.turnover.toFixed(1)}%</td>
+  </tr>`).join('');
+}
+
+let FOLHA_DATA=[];
+
+/* ═══════════ FIREBASE ═══════════ */
+const CLIENTE_ID='moreira';
+const LOGIN_EMAIL='moreira@clientes.kalufegomes.com.br';
+const firebaseConfig={
+  apiKey:"AIzaSyAMDRgf0pkzdtYTwRM-_aQkf8pQLvmAP9o",
+  authDomain:"dashboards-37d4c.firebaseapp.com",
+  projectId:"dashboards-37d4c",
+  storageBucket:"dashboards-37d4c.firebasestorage.app",
+  messagingSenderId:"442296616972",
+  appId:"1:442296616972:web:f0a77f3768aee303224629"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+function fazerLogin(){
+  const senha=document.getElementById('login-senha').value;
+  const btn=document.getElementById('login-btn');
+  const erro=document.getElementById('login-error');
+  erro.textContent='';
+  if(!senha){erro.textContent='Digite a senha.';return;}
+  btn.disabled=true; btn.textContent='Entrando...';
+  auth.signInWithEmailAndPassword(LOGIN_EMAIL,senha)
+    .catch(err=>{
+      erro.textContent='Senha incorreta ou usuário sem acesso.';
+      btn.disabled=false; btn.textContent='Entrar';
+    });
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    document.getElementById('login-gate').classList.add('hidden');
+    document.getElementById('dash-loading').classList.add('visible');
+    try{
+      await carregarDadosFirestore();
+      buildSidebar();
+      refresh();
+      document.getElementById('dash-loading').classList.remove('visible');
+      document.getElementById('app-root').classList.add('visible');
+    }catch(err){
+      document.getElementById('dash-loading').textContent='Erro ao carregar dados: '+err.message;
+    }
+  }else{
+    document.getElementById('app-root').classList.remove('visible');
+    document.getElementById('dash-loading').classList.remove('visible');
+    document.getElementById('login-gate').classList.remove('hidden');
+    document.getElementById('login-btn').disabled=false;
+    document.getElementById('login-btn').textContent='Entrar';
+  }
+});
+
+async function carregarDadosFirestore(){
+  const clienteRef=db.collection('clientes').doc(CLIENTE_ID);
+  const ordemMeses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // ---- Vendas: operadores ----
+  const opsSnap=await clienteRef.collection('vendas_operadores').get();
+  ALL_OPS=opsSnap.docs.map(d=>d.data());
+  selected.clear();
+  ALL_OPS.forEach(o=>selected.add(o.id));
+
+  // ---- Vendas: mensal ----
+  const mensalSnap=await clienteRef.collection('vendas_mensal').get();
+  MENSAL_ALL=mensalSnap.docs.map(d=>d.data())
+    .sort((a,b)=> a.ano-b.ano || ordemMeses.indexOf(a.mes.split('/')[0])-ordemMeses.indexOf(b.mes.split('/')[0]));
+
+  // ---- Vendas: horários (2025 / 2026 / todos) ----
+  const horariosSnap=await clienteRef.collection('vendas_horarios').get();
+  HORARIOS_ALL={2025:[],2026:[],todos:[]};
+  horariosSnap.forEach(doc=>{ HORARIOS_ALL[doc.id]=doc.data().rows||[]; });
+  MENSAL=MENSAL_ALL;
+  HORARIOS=HORARIOS_ALL.todos;
+
+  // ---- RH: indicadores mensais (Folha de Pagamento real) ----
+  const indSnap=await clienteRef.collection('indicadores_mensais').get();
+  FOLHA_DATA=indSnap.docs.map(d=>d.data())
+    .sort((a,b)=> a.ano-b.ano || ordemMeses.indexOf(a.mes)-ordemMeses.indexOf(b.mes))
+    .map(d=>({
+      mes:`${d.mes}/${d.ano}`,
+      liquido:d.folha*1000,
+      inss: (d.inss_mil||0)*1000,
+      fgts: (d.fgts_mil||0)*1000,
+      n_emp: d.headcount_total ?? d.headcount,
+      trabalhando: d.headcount,
+      demitidos: d.rescisoes ?? 0,
+      ferias: d.ferias ?? 0
+    }));
+}
+
 </script>
 </body>
 </html>
