@@ -3,194 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moreira & Filhos · Dashboard Integrado · Kaluf & Gomes</title>
+<title>Moreira & Filhos · Dashboard de RH · Kaluf & Gomes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
-/* ── Reset & base ───────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --purple:#47448E;
-  --purple-dark:#3A3778;
-  --purple-light:#EEEEF8;
-  --green:#AACC47;
-  --green-dark:#7DA832;
-  --text-dark:#343434;
-  --text-muted:#888;
-  --bg:#F4F5FA;
-  --white:#fff;
-  --border:#E2E4EE;
-  --radius:12px;
+  --purple:#47448E; --purple-dark:#3A3778; --purple-light:#EEEEF8;
+  --green:#AACC47; --green-dark:#7DA832;
+  --red:#D85A30;
+  --text-dark:#343434; --text-muted:#888;
+  --bg:#F4F5FA; --white:#fff; --border:#E2E4EE; --radius:12px;
 }
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-dark);display:flex;min-height:100vh}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-dark);display:flex;min-height:100vh;width:100%;margin:0}
+html{height:100%}
 
-/* ── Sidebar ────────────────────────────────────────────────── */
-.sidebar{
-  width:240px;flex-shrink:0;background:var(--purple);
-  display:flex;flex-direction:column;
-  min-height:100vh;
-}
-
-/* Logo fiel à imagem */
-.logo-wrap{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.12)}
-.logo-icon-box{
-  width:80px;height:80px;
-  background:var(--purple);
-  border-radius:18px;
-  border:3px solid rgba(255,255,255,.15);
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 12px;
-  position:relative;
-  overflow:visible;
-}
-/* Cart SVG inline */
-.logo-text{text-align:center}
-.logo-moreira{
-  font-family:'Nunito',sans-serif;
-  font-weight:900;
-  font-size:22px;
-  color:#fff;
-  letter-spacing:-0.5px;
-  line-height:1;
-}
-.logo-efilhos{
-  font-family:'Dancing Script',cursive;
-  font-size:16px;
-  color:#fff;
-  line-height:1.2;
-}
-.logo-tag{
-  display:inline-block;
-  background:var(--purple);
-  border:2px solid #fff;
-  border-radius:5px;
-  color:#fff;
-  font-size:9px;
-  font-weight:800;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  padding:3px 10px;
-  margin-top:6px;
-}
-
-.nav-section{
-  font-size:10px;font-weight:700;
-  color:rgba(255,255,255,.4);
-  text-transform:uppercase;letter-spacing:.1em;
-  padding:20px 20px 6px;
-}
-.nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 20px;cursor:pointer;
-  font-size:13px;font-weight:600;
-  color:rgba(255,255,255,.65);
-  border-left:3px solid transparent;
-  transition:all .15s;
-  text-decoration:none;
-}
+/* SIDEBAR */
+.sidebar{width:230px;flex-shrink:0;background:var(--purple);display:flex;flex-direction:column;min-height:100vh}
+.logo-wrap{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.12);text-align:center}
+.logo-text .logo-moreira{font-weight:900;font-size:20px;color:#fff;letter-spacing:-0.5px;line-height:1}
+.logo-text .logo-efilhos{font-family:'Dancing Script',cursive;font-size:14px;color:#fff;line-height:1.3}
+.logo-tag{display:inline-block;background:var(--purple);border:1.5px solid #fff;border-radius:5px;color:#fff;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;margin-top:6px}
+.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;padding:18px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.65);border-left:3px solid transparent}
 .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
 .nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--green)}
-.nav-item i{font-size:17px;flex-shrink:0}
+.nav-item i{font-size:16px;flex-shrink:0}
+.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;font-weight:600;color:rgba(255,255,255,.35);margin-top:auto}
 
-.filter-wrap{padding:16px 20px;flex:1;overflow-y:auto}
-.filter-wrap h4{
-  font-size:10px;font-weight:700;
-  color:rgba(255,255,255,.4);
-  text-transform:uppercase;letter-spacing:.1em;
-  margin-bottom:8px;
-}
-.op-list{display:flex;flex-direction:column;gap:2px;max-height:220px;overflow-y:auto}
-.op-item{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;font-size:12px;font-weight:600;color:rgba(255,255,255,.75)}
-.op-item input{accent-color:var(--green);width:14px;height:14px;cursor:pointer;flex-shrink:0}
-.op-item label{cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.btn-pair{display:flex;gap:6px;margin-bottom:10px}
-.btn-xs{flex:1;font-size:11px;font-weight:700;padding:5px;border:1.5px solid rgba(255,255,255,.25);border-radius:6px;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-family:'Nunito',sans-serif}
-.btn-xs:hover{background:rgba(255,255,255,.1);color:#fff}
-.sort-sel{width:100%;padding:6px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:12px;font-weight:600;font-family:'Nunito',sans-serif;margin-top:8px}
-.sort-sel option{background:#3A3778;color:#fff}
-
-.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;font-weight:600;color:rgba(255,255,255,.35)}
-
-/* ── Main ───────────────────────────────────────────────────── */
+/* MAIN */
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{
-  background:var(--white);
-  border-bottom:1px solid var(--border);
-  padding:14px 24px;
-  display:flex;align-items:center;justify-content:space-between;
-}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
 .topbar-left h2{font-size:16px;font-weight:800;color:var(--text-dark)}
 .topbar-left p{font-size:12px;font-weight:600;color:var(--text-muted);margin-top:1px}
-.topbar-badge{background:var(--purple-light);color:var(--purple-dark);font-size:12px;font-weight:800;padding:4px 12px;border-radius:20px}
-
+.topbar-badge{background:var(--purple-light);color:var(--purple-dark);font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px}
 .content{padding:20px;flex:1;overflow-y:auto}
 .page{display:none;flex-direction:column;gap:16px}
 .page.active{display:flex}
 
-/* ── KPI cards ──────────────────────────────────────────────── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .kpi{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px}
-.kpi-icon{width:36px;height:36px;border-radius:10px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:18px;color:var(--purple)}
-.kpi label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
-.kpi-val{font-size:20px;font-weight:900;color:var(--text-dark);margin-top:3px;line-height:1}
+.kpi-icon{width:34px;height:34px;border-radius:9px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;margin-bottom:9px;font-size:16px;color:var(--purple)}
+.kpi label{font-size:10.5px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+.kpi-val{font-size:19px;font-weight:900;color:var(--text-dark);margin-top:3px;line-height:1.1}
 .kpi-sub{font-size:11px;font-weight:600;color:var(--text-muted);margin-top:3px}
-.kpi-pos{color:#5A8A1A}
-.kpi-neg{color:#B83030}
+.kpi-formula{font-size:10px;font-style:italic;color:var(--text-muted);margin-top:4px;line-height:1.3}
 
-/* ── Chart cards ────────────────────────────────────────────── */
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px}
 .card.full{grid-column:1/-1}
 .card-title{font-size:13px;font-weight:800;color:var(--text-dark);margin-bottom:3px}
 .card-sub{font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:12px}
-.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:11px;font-weight:700;color:var(--text-muted)}
-.legend span{display:flex;align-items:center;gap:5px}
-.legend b{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0}
 
-/* ── Table ──────────────────────────────────────────────────── */
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{padding:8px 10px;font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+th{padding:8px 10px;font-size:10.5px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
 td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text-dark);font-weight:600;white-space:nowrap}
 tr:last-child td{border-bottom:none}
 tr.total-row td{font-weight:800;background:#F8F8FC}
-tr:hover td{background:#FAFAFE}
-.bar-mini{height:5px;border-radius:3px;margin-top:4px}
-.badge-pos{color:#3B6D11;background:#EAF3DE;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
-.badge-neg{color:#791F1F;background:#FCEBEB;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
-.peak-badge{color:var(--purple-dark);background:var(--purple-light);font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px}
+.tag-nd{color:var(--text-muted);background:var(--bg);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
 
-/* ── LOGIN GATE ── */
+.no-data-note{font-size:12px;color:var(--text-muted);background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px}
+
+/* LOGIN GATE */
 #login-gate{position:fixed;inset:0;background:#2E2C63;display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column}
 #login-gate.hidden{display:none}
 .login-card{background:#fff;border-radius:14px;padding:36px 34px;width:100%;max-width:320px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
-.login-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--purple);text-align:center;margin-bottom:2px}
+.login-title{font-weight:900;font-size:20px;color:var(--purple);text-align:center;margin-bottom:2px}
 .login-sub{font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:22px}
 .login-field{margin-bottom:14px}
 .login-field label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
-.login-field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Nunito',sans-serif;outline:none}
+.login-field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none}
 .login-field input:focus{border-color:var(--green)}
-.login-btn{width:100%;padding:12px;border:none;border-radius:8px;background:var(--purple);color:#fff;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;margin-top:6px;font-family:'Nunito',sans-serif}
+.login-btn{width:100%;padding:12px;border:none;border-radius:8px;background:var(--purple);color:#fff;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;margin-top:6px;font-family:inherit}
 .login-btn:hover{background:var(--purple-dark)}
 .login-btn:disabled{opacity:.6;cursor:default}
-.login-error{color:#B83030;font-size:12px;text-align:center;margin-top:10px;min-height:16px}
+.login-error{color:var(--red);font-size:12px;text-align:center;margin-top:10px;min-height:16px}
 .login-brand{color:rgba(255,255,255,.35);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-top:18px}
 #app-root{display:none}
-#app-root.visible{display:flex}
-#dash-loading{position:fixed;inset:0;background:#2E2C63;display:none;align-items:center;justify-content:center;color:#fff;font-family:'Nunito',sans-serif;font-size:13px;z-index:998}
+#app-root.visible{display:flex;width:100%}
+#dash-loading{position:fixed;inset:0;background:#2E2C63;display:none;align-items:center;justify-content:center;color:#fff;font-size:13px;z-index:998}
 #dash-loading.visible{display:flex}
-
-/* ── grupos de navegação / controles compartilhados ── */
-.io-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;color:var(--text-dark);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
-.io-btn:hover{background:var(--bg)}
-.io-msg{font-size:11px;font-weight:700;margin-left:4px}
-.io-msg.ok{color:#3B6D11}
-.io-msg.err{color:#B83030}
 </style>
 </head>
 <body>
@@ -199,7 +96,7 @@ tr:hover td{background:#FAFAFE}
 <div id="login-gate">
   <div class="login-card">
     <div class="login-title">Moreira & Filhos</div>
-    <div class="login-sub">Dashboard Integrado · RH + Vendas</div>
+    <div class="login-sub">Dashboard de RH</div>
     <div class="login-field">
       <label>Senha de acesso</label>
       <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
@@ -210,27 +107,18 @@ tr:hover td{background:#FAFAFE}
   <div class="login-brand">Kaluf &amp; Gomes</div>
 </div>
 
-<!-- LOADING -->
 <div id="dash-loading">Carregando dados...</div>
 
 <div id="app-root">
-<!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
 <nav class="sidebar">
-
   <div class="logo-wrap">
-    <!-- Cart icon SVG fiel à logo: fundo roxo com carrinho verde -->
-    <div style="display:flex;justify-content:center;margin-bottom:10px">
-      <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Fundo quadrado roxo com bordas arredondadas -->
+    <div style="display:flex;justify-content:center;margin-bottom:8px">
+      <svg width="64" height="64" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="90" height="90" rx="18" fill="#47448E"/>
-        <!-- Handle do carrinho (parte de cima esquerda) -->
         <path d="M16 22 L27 22" stroke="#AACC47" stroke-width="5" stroke-linecap="round"/>
-        <!-- Corpo do carrinho -->
         <path d="M27 22 L32 52 L68 52 L73 30 L27 30" fill="none" stroke="#AACC47" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- Divisórias internas do carrinho (estilo "M") -->
         <line x1="46" y1="30" x2="44" y2="52" stroke="#AACC47" stroke-width="4" stroke-linecap="round"/>
         <line x1="58" y1="30" x2="57" y2="52" stroke="#AACC47" stroke-width="4" stroke-linecap="round"/>
-        <!-- Rodas -->
         <circle cx="38" cy="62" r="6" fill="#AACC47"/>
         <circle cx="61" cy="62" r="6" fill="#AACC47"/>
       </svg>
@@ -238,228 +126,130 @@ tr:hover td{background:#FAFAFE}
     <div class="logo-text">
       <div class="logo-moreira">moreira</div>
       <div class="logo-efilhos">e filhos</div>
-      <div><span class="logo-tag">Supermercado</span></div>
+      <div><span class="logo-tag">RH · Dashboard</span></div>
     </div>
   </div>
-
-  <div class="nav-section">Vendas</div>
-  <a class="nav-item active" id="nav-overview" onclick="setPage('overview')"><i class="ti ti-layout-dashboard"></i>Visão geral</a>
-  <a class="nav-item" id="nav-operadores" onclick="setPage('operadores')"><i class="ti ti-users"></i>Operadores</a>
-  <a class="nav-item" id="nav-mensal" onclick="setPage('mensal')"><i class="ti ti-calendar"></i>Mensal</a>
-  <a class="nav-item" id="nav-horarios" onclick="setPage('horarios')"><i class="ti ti-clock"></i>Por horário</a>
 
   <div class="nav-section">Recursos Humanos</div>
-  <a class="nav-item" id="nav-folha" onclick="setPage('folha')"><i class="ti ti-report-money"></i>Folha de Pagamento</a>
+  <a class="nav-item active" id="nav-visao" onclick="setPage('visao')"><i class="ti ti-layout-dashboard"></i>Visão Geral</a>
+  <a class="nav-item" id="nav-turnover" onclick="setPage('turnover')"><i class="ti ti-arrows-exchange"></i>Turnover</a>
+  <a class="nav-item" id="nav-absenteismo" onclick="setPage('absenteismo')"><i class="ti ti-calendar-off"></i>Absenteísmo</a>
+  <a class="nav-item" id="nav-headcount" onclick="setPage('headcount')"><i class="ti ti-users"></i>Headcount</a>
+  <a class="nav-item" id="nav-custos" onclick="setPage('custos')"><i class="ti ti-report-money"></i>Custos</a>
   <a class="nav-item" id="nav-sim" onclick="setPage('sim')"><i class="ti ti-calculator"></i>Simulador de Rescisão</a>
 
-  <div class="nav-section">Cruzados</div>
-  <a class="nav-item" id="nav-cruzados" onclick="setPage('cruzados')"><i class="ti ti-chart-dots"></i>Indicadores Cruzados</a>
-
-  <div class="filter-wrap">
-    <h4>Filtrar operadores</h4>
-    <div class="btn-pair">
-      <button class="btn-xs" onclick="selectAll(true)">Todos</button>
-      <button class="btn-xs" onclick="selectAll(false)">Nenhum</button>
-    </div>
-    <div class="op-list" id="op-list"></div>
-    <h4 style="margin-top:14px">Período</h4>
-    <select class="sort-sel" id="ano-sel" onchange="setAno(this.value)" style="margin-bottom:8px">
-      <option value="todos">Todos (2025–2026)</option>
-      <option value="2025">2025 (Jan–Nov)</option>
-      <option value="2026">2026 (Jan–Mai)</option>
-    </select>
-    <h4>Ordenar por</h4>
-    <select class="sort-sel" id="sort-sel" onchange="refresh()">
-      <option value="total">Valor total</option>
-      <option value="cupons">Qtd. cupons</option>
-      <option value="ticket">Ticket médio</option>
-      <option value="itens">Qtd. itens</option>
-    </select>
-  </div>
-
-  <div class="sidebar-footer">Loja 1 &nbsp;·&nbsp; Mai/2026</div>
+  <div class="sidebar-footer">Kaluf &amp; Gomes &nbsp;·&nbsp; 2026</div>
 </nav>
 
-<!-- ══ MAIN ═════════════════════════════════════════════════════ -->
 <div class="main">
   <div class="topbar">
     <div class="topbar-left">
-      <h2 id="page-title">Visão geral</h2>
-      <p>Relatório de vendas · 01/05/2026 a 29/05/2026</p>
+      <h2 id="page-title">Visão Geral</h2>
+      <p id="page-sub">Indicadores de RH · Moreira & Filhos</p>
     </div>
-    <span class="topbar-badge">Loja 1</span>
+    <span class="topbar-badge" id="topbar-badge">—</span>
   </div>
 
   <div class="content">
 
-    <!-- OVERVIEW -->
-    <div class="page active" id="page-overview">
-      <div class="kpi-grid" id="kpi-row"></div>
+    <!-- VISÃO GERAL -->
+    <div class="page active" id="page-visao">
+      <div class="kpi-grid" id="kpi-visao"></div>
       <div class="row2">
-        <div class="card full">
-          <div class="card-title">Valor total por operador</div>
-          <div class="legend">
-            <span><b style="background:#47448E"></b>Operadores humanos</span>
-            <span><b style="background:#A89CDA"></b>Self / genéricos</span>
-          </div>
-          <div style="position:relative;width:100%;height:260px">
-            <canvas id="c-bar" role="img" aria-label="Valor total por operador"></canvas>
-          </div>
+        <div class="card">
+          <div class="card-title">Turnover (%)</div>
+          <div class="card-sub">Desligamentos ÷ colaboradores trabalhando</div>
+          <div style="position:relative;width:100%;height:210px"><canvas id="c-visao-turn"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">Participação %</div>
-          <div class="card-sub">Top 8 operadores</div>
-          <div style="position:relative;width:100%;height:210px">
-            <canvas id="c-donut" role="img" aria-label="Participação percentual"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Ticket médio por operador</div>
-          <div class="card-sub">Operadores com mais de 100 cupons</div>
-          <div style="position:relative;width:100%;height:210px">
-            <canvas id="c-ticket" role="img" aria-label="Ticket médio por operador"></canvas>
-          </div>
+          <div class="card-title">Absenteísmo (%)</div>
+          <div class="card-sub">Horas de ausência ÷ horas previstas</div>
+          <div style="position:relative;width:100%;height:210px"><canvas id="c-visao-abs"></canvas></div>
         </div>
       </div>
     </div>
 
-    <!-- OPERADORES -->
-    <div class="page" id="page-operadores">
+    <!-- TURNOVER -->
+    <div class="page" id="page-turnover">
+      <div class="kpi-grid" id="kpi-turnover" style="grid-template-columns:repeat(3,1fr)"></div>
       <div class="card full">
-        <div class="card-title">Detalhamento por operador</div>
-        <div style="overflow-x:auto">
-          <table>
-            <thead><tr>
-              <th>Operador</th><th style="text-align:right">Cupons</th>
-              <th style="text-align:right">Itens</th><th style="text-align:right">Ticket médio</th>
-              <th style="text-align:right">Valor total</th><th style="text-align:right">% total</th>
-              <th style="min-width:90px">Volume</th>
-            </tr></thead>
-            <tbody id="tbl-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- MENSAL -->
-    <div class="page" id="page-mensal">
-      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)" id="kpi-mensal-top"></div>
-      <div class="row2">
-        <div class="card full">
-          <div class="card-title">Evolução de vendas mensais</div>
-          <div style="position:relative;width:100%;height:210px">
-            <canvas id="c-mensal" role="img" aria-label="Evolução mensal de vendas"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Variação % mês a mês</div>
-          <div style="position:relative;width:100%;height:195px">
-            <canvas id="c-var" role="img" aria-label="Variação percentual mensal"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Ticket médio mensal</div>
-          <div style="position:relative;width:100%;height:195px">
-            <canvas id="c-tm" role="img" aria-label="Ticket médio por mês"></canvas>
-          </div>
-        </div>
+        <div class="card-title">Evolução do Turnover</div>
+        <div class="card-sub">Jan–Ago/2026 · desligamentos ÷ colaboradores trabalhando no mês</div>
+        <div style="position:relative;width:100%;height:240px"><canvas id="c-turnover"></canvas></div>
       </div>
       <div class="card full">
-        <div class="card-title">Resumo consolidado</div>
+        <div class="card-title">Tabela Mensal</div>
         <table>
-          <thead><tr>
-            <th>Mês</th><th style="text-align:right">Clientes</th>
-            <th style="text-align:right">Valor total</th><th style="text-align:right">Ticket médio</th>
-            <th style="text-align:right">Var. vendas</th><th style="text-align:center">Pico</th>
-            <th style="text-align:right">Valor pico</th>
-          </tr></thead>
-          <tbody id="tbl-mensal"></tbody>
+          <thead><tr><th>Mês</th><th style="text-align:right">Desligamentos</th><th style="text-align:right">Colaboradores</th><th style="text-align:right">Turnover</th></tr></thead>
+          <tbody id="tbl-turnover"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- HORÁRIOS -->
-    <div class="page" id="page-horarios">
-      <div class="kpi-grid" id="kpi-hora"></div>
-      <div class="row2">
-        <div class="card full">
-          <div class="card-title">Vendas acumuladas por horário</div>
-          <div class="card-sub">Dez/2025 a Mai/2026 · todos os períodos disponíveis</div>
-          <div style="position:relative;width:100%;height:240px">
-            <canvas id="c-hbar" role="img" aria-label="Valor acumulado por horário"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Clientes por horário</div>
-          <div style="position:relative;width:100%;height:195px">
-            <canvas id="c-hcli" role="img" aria-label="Clientes por horário"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Ticket médio por horário</div>
-          <div style="position:relative;width:100%;height:195px">
-            <canvas id="c-htk" role="img" aria-label="Ticket médio por horário"></canvas>
-          </div>
-        </div>
+    <!-- ABSENTEÍSMO -->
+    <div class="page" id="page-absenteismo">
+      <div class="no-data-note" id="abs-nota"></div>
+      <div class="kpi-grid" id="kpi-absenteismo" style="grid-template-columns:repeat(3,1fr)"></div>
+      <div class="card full">
+        <div class="card-title">Evolução do Absenteísmo</div>
+        <div class="card-sub">Fonte: relatórios Secullum (Ponto Offline) · só aparecem os meses com relatório recebido</div>
+        <div style="position:relative;width:100%;height:240px"><canvas id="c-absenteismo"></canvas></div>
       </div>
       <div class="card full">
-        <div class="card-title">Tabela detalhada por horário</div>
+        <div class="card-title">Tabela Mensal</div>
         <table>
-          <thead><tr>
-            <th>Horário</th><th style="text-align:right">Clientes</th>
-            <th style="text-align:right">Valor acumulado</th><th style="text-align:right">Ticket médio</th>
-            <th style="text-align:right">% do total</th><th style="min-width:100px">Volume</th>
-          </tr></thead>
-          <tbody id="tbl-hora"></tbody>
+          <thead><tr><th>Mês</th><th style="text-align:right">Horas Previstas</th><th style="text-align:right">Horas de Ausência</th><th style="text-align:right">Absenteísmo</th></tr></thead>
+          <tbody id="tbl-absenteismo"></tbody>
         </table>
       </div>
     </div>
 
+    <!-- HEADCOUNT -->
+    <div class="page" id="page-headcount">
+      <div class="kpi-grid" id="kpi-headcount" style="grid-template-columns:repeat(3,1fr)"></div>
+      <div class="card full">
+        <div class="card-title">Evolução do Headcount</div>
+        <div class="card-sub">Total registrado vs. trabalhando efetivamente no mês</div>
+        <div style="position:relative;width:100%;height:240px"><canvas id="c-headcount"></canvas></div>
+      </div>
+      <div class="card full">
+        <div class="card-title">Tabela Mensal</div>
+        <table>
+          <thead><tr><th>Mês</th><th style="text-align:right">Total Registrado</th><th style="text-align:right">Trabalhando</th><th style="text-align:right">Desligamentos no Mês</th></tr></thead>
+          <tbody id="tbl-headcount"></tbody>
+        </table>
+      </div>
+    </div>
 
-    <div class="page" id="page-folha">
-      <div class="kpi-grid" id="kpi-folha"></div>
+    <!-- CUSTOS -->
+    <div class="page" id="page-custos">
+      <div class="kpi-grid" id="kpi-custos"></div>
       <div class="row2">
         <div class="card full">
-          <div class="card-title">Líquido Geral por Mês · Jan–Ago/2026</div>
-          <div class="card-sub">Valor líquido total pago aos colaboradores</div>
-          <div style="position:relative;width:100%;height:240px">
-            <canvas id="c-fliquid" role="img" aria-label="Líquido geral mensal"></canvas>
-          </div>
+          <div class="card-title">Custo Total da Folha</div>
+          <div class="card-sub">Líquido + INSS + FGTS, por mês</div>
+          <div style="position:relative;width:100%;height:230px"><canvas id="c-custo-folha"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">INSS Total por Mês</div>
-          <div style="position:relative;width:100%;height:195px">
-            <canvas id="c-finss" role="img" aria-label="INSS mensal"></canvas>
-          </div>
+          <div class="card-title">Custo de Turnover</div>
+          <div class="card-sub" style="font-style:italic">Estimativa CLT: aviso prévio + 13º/férias proporcionais + multa FGTS, por desligamento · assume 6 meses de casa em média (referência do setor supermercadista, não é dado real da empresa)</div>
+          <div style="position:relative;width:100%;height:210px"><canvas id="c-custo-turnover"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">FGTS por Mês</div>
-          <div style="position:relative;width:100%;height:195px">
-            <canvas id="c-ffgts" role="img" aria-label="FGTS mensal"></canvas>
-          </div>
+          <div class="card-title">Custo de Absenteísmo</div>
+          <div class="card-sub" style="font-style:italic">Estimativa: custo por hora no mês × horas de ausência (só meses com relatório)</div>
+          <div style="position:relative;width:100%;height:210px"><canvas id="c-custo-abs"></canvas></div>
         </div>
       </div>
       <div class="card full">
-        <div class="card-title">Quadro de Pessoal por Mês · Jan–Ago/2026</div>
-        <div style="position:relative;width:100%;height:220px">
-          <canvas id="c-femp" role="img" aria-label="Número de colaboradores"></canvas>
-        </div>
-      </div>
-      <div class="card full">
-        <div class="card-title">Tabela Resumo — Folha de Pagamento 2026</div>
+        <div class="card-title">Tabela Mensal de Custos</div>
         <table>
           <thead><tr>
-            <th>Mês</th>
-            <th style="text-align:right">Nº Emp.</th>
-            <th style="text-align:right">Trabalhando</th>
-            <th style="text-align:right">Demitidos</th>
-            <th style="text-align:right">Férias</th>
-            <th style="text-align:right">Líquido Geral</th>
-            <th style="text-align:right">INSS Total</th>
-            <th style="text-align:right">FGTS</th>
-            <th style="text-align:right">Turnover</th>
+            <th>Mês</th><th style="text-align:right">Líquido</th><th style="text-align:right">INSS</th>
+            <th style="text-align:right">FGTS</th><th style="text-align:right">Custo Total Folha</th>
+            <th style="text-align:right">Custo Turnover</th><th style="text-align:right">Custo Absenteísmo</th>
           </tr></thead>
-          <tbody id="tbl-folha"></tbody>
+          <tbody id="tbl-custos"></tbody>
         </table>
       </div>
     </div>
@@ -501,371 +291,208 @@ tr:hover td{background:#FAFAFE}
       </div>
     </div>
 
-    <!-- INDICADORES CRUZADOS -->
-    <div class="page" id="page-cruzados">
-      <div class="no-data-note" style="font-size:12px;color:var(--text-muted);background:var(--bg);border:1px dashed var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px">Cruza dados reais de Vendas (2025–2026) com dados reais de Folha de Pagamento (Jan–Ago/2026). Só entram os meses em que ambas as fontes têm dado apurado — atualmente Jan a Mai/2026.</div>
-      <div class="kpi-grid" id="kpi-cruzados"></div>
-      <div class="row2">
-        <div class="card full">
-          <div class="card-title">Faturamento por Funcionário</div>
-          <div class="card-sub">Vendas do mês ÷ colaboradores trabalhando no mês</div>
-          <div style="position:relative;width:100%;height:230px">
-            <canvas id="c-cruz-fat"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Turnover vs. Vendas</div>
-          <div style="position:relative;width:100%;height:210px">
-            <canvas id="c-cruz-turn"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Custo de Pessoal / Receita</div>
-          <div class="card-sub">(Líquido + INSS + FGTS) ÷ vendas do mês</div>
-          <div style="position:relative;width:100%;height:210px">
-            <canvas id="c-cruz-custo"></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="card full">
-        <div class="card-title">Tabela Cruzada</div>
-        <table>
-          <thead><tr>
-            <th>Mês</th><th style="text-align:right">Vendas</th><th style="text-align:right">Colaboradores</th>
-            <th style="text-align:right">Fat./Func.</th><th style="text-align:right">Custo Pessoal</th>
-            <th style="text-align:right">Custo/Receita</th><th style="text-align:right">Turnover</th>
-          </tr></thead>
-          <tbody id="tbl-cruzados"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /main -->
-</div><!-- /app-root -->
+  </div>
+</div>
+</div>
 
 <script>
-let ALL_OPS=[];
-let MENSAL_ALL=[];
-let HORARIOS_ALL={2025:[],2026:[],todos:[]};
-
-let anoSel='todos';
-let MENSAL=MENSAL_ALL;
-let HORARIOS=HORARIOS_ALL.todos;
-
-const PURPLE='#47448E', GREEN='#AACC47', PURPLE2='#6B68BE', PURPLE3='#A89CDA';
-const selected=new Set(ALL_OPS.map(o=>o.id));
-let charts={};
-let currentPage='overview';
-
 const fmtBRL=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtN=v=>v.toLocaleString('pt-BR');
-const shortName=n=>n.replace(/^\d+\s*-\s*/,'').split(' ')[0];
-const PAGE_TITLES={overview:'Visão geral',operadores:'Operadores',mensal:'Mensal',horarios:'Por horário',folha:'Folha de Pagamento',sim:'Simulador de Rescisão',cruzados:'Indicadores Cruzados'};
+const PURPLE='#47448E', GREEN='#AACC47', RED='#D85A30';
+const PAGE_TITLES={visao:'Visão Geral',turnover:'Turnover',absenteismo:'Absenteísmo',headcount:'Headcount',custos:'Custos',sim:'Simulador de Rescisão'};
+const PAGE_SUBS={visao:'Indicadores de RH · Moreira & Filhos',turnover:'Desligamentos e rotatividade',absenteismo:'Ausências sobre horas previstas',headcount:'Quadro de pessoal',custos:'Folha, turnover e absenteísmo em R$',sim:'Cálculo de verbas rescisórias'};
 
-function setAno(v){
-  anoSel=v;
-  if(v==='todos'){MENSAL=MENSAL_ALL;HORARIOS=HORARIOS_ALL.todos;}
-  else if(v==='2025'){MENSAL=MENSAL_ALL.filter(m=>m.ano===2025);HORARIOS=HORARIOS_ALL[2025];}
-  else{MENSAL=MENSAL_ALL.filter(m=>m.ano===2026);HORARIOS=HORARIOS_ALL[2026];}
-  refresh();
-}
+let DADOS=[]; // um item por mês, só os que existem no Firestore
+let charts={};
+function dc(id){ if(charts[id]){charts[id].destroy(); delete charts[id];} }
 
-function buildSidebar(){
-  const el=document.getElementById('op-list');el.innerHTML='';
-  ALL_OPS.forEach(op=>{
-    const d=document.createElement('div');d.className='op-item';
-    d.innerHTML=`<input type="checkbox" id="cb-${op.id}" checked onchange="toggleOp('${op.id}',this.checked)">
-                 <label for="cb-${op.id}">${op.name}</label>`;
-    el.appendChild(d);
-  });
-}
-
-function toggleOp(id,v){v?selected.add(id):selected.delete(id);refresh();}
-function selectAll(v){
-  ALL_OPS.forEach(o=>v?selected.add(o.id):selected.delete(o.id));
-  document.querySelectorAll('.op-list input').forEach(c=>c.checked=v);
-  refresh();
-}
-function getFiltered(){
-  const s=document.getElementById('sort-sel').value;
-  return ALL_OPS.filter(o=>selected.has(o.id)).sort((a,b)=>b[s]-a[s]);
-}
 function setPage(p){
-  currentPage=p;
-  ['overview','operadores','mensal','horarios','folha','sim','cruzados'].forEach(x=>{
-    document.getElementById('page-'+x).classList.toggle('active',x===p);
-    document.getElementById('nav-'+x).classList.toggle('active',x===p);
+  ['visao','turnover','absenteismo','headcount','custos','sim'].forEach(x=>{
+    document.getElementById('page-'+x).classList.toggle('active', x===p);
+    document.getElementById('nav-'+x).classList.toggle('active', x===p);
   });
-  document.getElementById('page-title').textContent=PAGE_TITLES[p];
-  if(p==='cruzados'){ renderCruzados(); return; }
-  if(p==='sim'){ calcResc(); return; }
-  refresh();
+  document.getElementById('page-title').textContent = PAGE_TITLES[p];
+  document.getElementById('page-sub').textContent = PAGE_SUBS[p];
+  if(p==='visao') renderVisao();
+  if(p==='turnover') renderTurnover();
+  if(p==='absenteismo') renderAbsenteismo();
+  if(p==='headcount') renderHeadcount();
+  if(p==='custos') renderCustos();
+  if(p==='sim') calcResc();
 }
-function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 
-function refresh(){
-  const ops=getFiltered();
-  const totalV=ops.reduce((s,o)=>s+o.total,0);
-  const totalC=ops.reduce((s,o)=>s+o.cupons,0);
-  const totalI=ops.reduce((s,o)=>s+o.itens,0);
-  const avgT=totalC>0?totalV/totalC:0;
+function renderVisao(){
+  const last = DADOS[DADOS.length-1];
+  const comAbs = DADOS.filter(d=>d.abs!=null);
+  const totalDeslig = DADOS.reduce((s,d)=>s+d.rescisoes,0);
+  const custoFolhaAcum = DADOS.reduce((s,d)=>s+d.custoFolha,0);
+  document.getElementById('kpi-visao').innerHTML = `
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-users"></i></div><label>Headcount Atual</label><div class="kpi-val">${last.headcount}</div><div class="kpi-sub">${last.mes} · ${last.headcountTotal} registrados</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-arrows-exchange"></i></div><label>Desligamentos Acumulados</label><div class="kpi-val">${totalDeslig}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes} · turnover médio ${media(DADOS.map(d=>d.turn)).toFixed(1)}%</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar-off"></i></div><label>Horas de Absenteísmo Acumuladas</label><div class="kpi-val">${comAbs.length? fmtN(Math.round(comAbs.reduce((s,d)=>s+d.absAusenciasH,0)))+'h' : '-'}</div><div class="kpi-sub">${comAbs.length? comAbs.length+' meses apurados · média '+media(comAbs.map(d=>d.abs)).toFixed(2)+'%' : 'sem relatório recebido'}</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Custo Total da Folha Acumulado</label><div class="kpi-val">${fmtBRL(custoFolhaAcum)}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes}</div></div>`;
 
-  if(currentPage==='overview'){
-    document.getElementById('kpi-row').innerHTML=`
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-cash"></i></div><label>Valor total</label><div class="kpi-val">${fmtBRL(totalV)}</div><div class="kpi-sub">${ops.length} operadores</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-receipt-2"></i></div><label>Cupons</label><div class="kpi-val">${fmtN(totalC)}</div><div class="kpi-sub">01–29/mai/2026</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-package"></i></div><label>Itens</label><div class="kpi-val">${fmtN(totalI)}</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-tag"></i></div><label>Ticket médio</label><div class="kpi-val">${fmtBRL(avgT)}</div></div>`;
-    dc('bar');dc('donut');dc('ticket');
-    const top=ops.slice(0,12);
-    charts['bar']=new Chart(document.getElementById('c-bar'),{type:'bar',
-      data:{labels:top.map(o=>shortName(o.name)),datasets:[{data:top.map(o=>Math.round(o.total)),backgroundColor:top.map(o=>o.generic?PURPLE3:PURPLE)}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},
-                x:{grid:{display:false},ticks:{maxRotation:35,autoSkip:false,font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    const topD=ops.slice(0,8);
-    const dColors=[PURPLE,PURPLE2,'#8B88CE',PURPLE3,GREEN,'#7DB832','#5A9020','#3A6D10'];
-    charts['donut']=new Chart(document.getElementById('c-donut'),{type:'doughnut',
-      data:{labels:topD.map(o=>shortName(o.name)),datasets:[{data:topD.map(o=>parseFloat((o.total/totalV*100).toFixed(2))),backgroundColor:dColors,borderWidth:2,borderColor:'#fff'}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}}
-    });
-    const tOps=ops.filter(o=>o.cupons>100&&!o.generic).slice(0,10);
-    charts['ticket']=new Chart(document.getElementById('c-ticket'),{type:'bar',
-      data:{labels:tOps.map(o=>shortName(o.name)),datasets:[{data:tOps.map(o=>parseFloat(o.ticket.toFixed(2))),backgroundColor:GREEN}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+v,font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},
-                x:{grid:{display:false},ticks:{maxRotation:35,font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-  }
+  dc('visao-turn');
+  charts['visao-turn']=new Chart(document.getElementById('c-visao-turn'),{type:'line',
+    data:{labels:DADOS.map(d=>d.mes),datasets:[{data:DADOS.map(d=>+d.turn.toFixed(2)),borderColor:PURPLE,backgroundColor:'rgba(71,68,142,.1)',fill:true,tension:.3,pointRadius:4,borderWidth:2.5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+      scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
 
-  if(currentPage==='operadores'){
-    const gT=ALL_OPS.reduce((s,o)=>s+o.total,0);
-    const body=document.getElementById('tbl-body');body.innerHTML='';
-    ops.forEach(o=>{
-      const pct=(o.total/gT*100).toFixed(2);
-      const bw=Math.round(o.total/gT*100);
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${o.name}</td>
-        <td style="text-align:right">${fmtN(o.cupons)}</td>
-        <td style="text-align:right">${fmtN(o.itens)}</td>
-        <td style="text-align:right">${fmtBRL(o.ticket)}</td>
-        <td style="text-align:right">${fmtBRL(o.total)}</td>
-        <td style="text-align:right">${pct}%</td>
-        <td><div class="bar-mini" style="width:${Math.max(bw,1)}%;background:${o.generic?PURPLE3:PURPLE}"></div></td>`;
-      body.appendChild(tr);
-    });
-    const tot=document.createElement('tr');tot.className='total-row';
-    tot.innerHTML=`<td>Total (seleção)</td>
-      <td style="text-align:right">${fmtN(totalC)}</td>
-      <td style="text-align:right">${fmtN(totalI)}</td>
-      <td style="text-align:right">${fmtBRL(avgT)}</td>
-      <td style="text-align:right">${fmtBRL(totalV)}</td>
-      <td style="text-align:right">${(totalV/ALL_OPS.reduce((s,o)=>s+o.total,0)*100).toFixed(2)}%</td>
-      <td></td>`;
-    body.appendChild(tot);
-  }
-
-  if(currentPage==='mensal'){
-    dc('mensal');dc('var');dc('tm');
-    const bestM=MENSAL.reduce((a,b)=>b.total>a.total?b:a);
-    const avgTk=(MENSAL.reduce((s,m)=>s+m.ticket,0)/MENSAL.length).toFixed(2);
-    const totalCliM=MENSAL.reduce((s,m)=>s+m.cli,0);
-    const periodo=anoSel==='todos'?'Jan/2025 – Mai/2026':anoSel==='2025'?'Jan – Nov/2025':'Jan – Mai/2026';
-    document.getElementById('kpi-mensal-top').innerHTML=`
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-trending-up"></i></div><label>Melhor mês</label><div class="kpi-val">${bestM.mes}</div><div class="kpi-sub kpi-pos">${fmtBRL(bestM.total)}</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-receipt"></i></div><label>Ticket médio geral</label><div class="kpi-val">R$ ${avgTk}</div><div class="kpi-sub">${periodo}</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-users"></i></div><label>Total clientes</label><div class="kpi-val">${fmtN(totalCliM)}</div><div class="kpi-sub">${MENSAL.length} meses</div></div>`;
-
-    if(anoSel==='todos'){
-      const labels=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-      const d25=MENSAL_ALL.filter(m=>m.ano===2025).map(m=>Math.round(m.total));
-      const d26=[null,null,null,null,null,null,null,null,null,null,null,null];
-      MENSAL_ALL.filter(m=>m.ano===2026).forEach((m,i)=>{ d26[i]=Math.round(m.total); });
-      charts['mensal']=new Chart(document.getElementById('c-mensal'),{type:'line',
-        data:{labels,datasets:[
-          {label:'2025',data:d25,borderColor:PURPLE,fill:false,tension:.35,pointRadius:4,borderWidth:2.5,pointBackgroundColor:PURPLE},
-          {label:'2026',data:d26,borderColor:GREEN,fill:false,tension:.35,pointRadius:4,borderWidth:2.5,pointBackgroundColor:GREEN,borderDash:[6,3]},
-        ]},
-        options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{display:true,position:'top',labels:{font:{family:'Nunito',size:11},boxWidth:12}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtBRL(c.raw)}}},
-          scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-      });
-    } else {
-      charts['mensal']=new Chart(document.getElementById('c-mensal'),{type:'line',
-        data:{labels:MENSAL.map(m=>m.mes),datasets:[{data:MENSAL.map(m=>Math.round(m.total)),borderColor:PURPLE,backgroundColor:'rgba(71,68,142,.1)',fill:true,tension:.35,pointRadius:5,borderWidth:2.5,pointBackgroundColor:PURPLE}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-          scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-      });
-    }
-    const mensalComVar=MENSAL.filter(m=>m.varV!==null);
-    const vd=mensalComVar.map(m=>parseFloat(m.varV.toFixed(2)));
-    charts['var']=new Chart(document.getElementById('c-var'),{type:'bar',
-      data:{labels:mensalComVar.map(m=>m.mes),datasets:[{data:vd,backgroundColor:vd.map(v=>v>=0?GREEN:'#E24B4A')}]},
+  dc('visao-abs');
+  const absMeses=comAbs.map(d=>d.mes), absVals=comAbs.map(d=>+d.abs.toFixed(2));
+  if(comAbs.length){
+    charts['visao-abs']=new Chart(document.getElementById('c-visao-abs'),{type:'line',
+      data:{labels:absMeses,datasets:[{data:absVals,borderColor:RED,backgroundColor:'rgba(216,90,48,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2.5}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
-        scales:{y:{ticks:{callback:v=>v+'%',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
+        scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
     });
-    charts['tm']=new Chart(document.getElementById('c-tm'),{type:'line',
-      data:{labels:MENSAL.map(m=>m.mes),datasets:[{data:MENSAL.map(m=>parseFloat(m.ticket.toFixed(2))),borderColor:GREEN,backgroundColor:'rgba(170,204,71,.1)',fill:true,tension:.35,pointRadius:5,borderWidth:2.5,pointBackgroundColor:GREEN}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+v,font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    const tbody=document.getElementById('tbl-mensal');tbody.innerHTML='';
-    MENSAL.forEach(m=>{
-      const b=m.varV===null?'—':(m.varV>=0?`<span class="badge-pos">+${m.varV.toFixed(2)}%</span>`:`<span class="badge-neg">${m.varV.toFixed(2)}%</span>`);
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${m.mes}</td>
-        <td style="text-align:right">${fmtN(m.cli)}</td>
-        <td style="text-align:right">${fmtBRL(m.total)}</td>
-        <td style="text-align:right">${fmtBRL(m.ticket)}</td>
-        <td style="text-align:right">${b}</td>
-        <td style="text-align:center">${m.pico}</td>
-        <td style="text-align:right">${fmtBRL(m.valPico)}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  if(currentPage==='horarios'){
-    dc('hbar');dc('hcli');dc('htk');
-    const maxH=Math.max(...HORARIOS.map(h=>h.total));
-    const pico=HORARIOS.reduce((a,b)=>b.total>a.total?b:a);
-    const tH=HORARIOS.reduce((s,h)=>s+h.total,0);
-    const tC=HORARIOS.reduce((s,h)=>s+h.cli,0);
-    document.getElementById('kpi-hora').innerHTML=`
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-cash"></i></div><label>Total acumulado</label><div class="kpi-val">${fmtBRL(tH)}</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-clock"></i></div><label>Horário de pico</label><div class="kpi-val">${pico.h}</div><div class="kpi-sub kpi-pos">${pico.pct.toFixed(2)}% do total</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-users"></i></div><label>Clientes acumulados</label><div class="kpi-val">${fmtN(tC)}</div></div>
-      <div class="kpi"><div class="kpi-icon"><i class="ti ti-tag"></i></div><label>Ticket médio</label><div class="kpi-val">${fmtBRL(tH/Math.max(tC,1))}</div></div>`;
-    const barC=HORARIOS.map(h=>{
-      const r=h.total/maxH;
-      return r>=.98?PURPLE:r>=.80?PURPLE2:r>=.55?'#8B88CE':PURPLE3;
-    });
-    charts['hbar']=new Chart(document.getElementById('c-hbar'),{type:'bar',
-      data:{labels:HORARIOS.map(h=>h.h),datasets:[{data:HORARIOS.map(h=>Math.round(h.total)),backgroundColor:barC}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{autoSkip:false,font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    charts['hcli']=new Chart(document.getElementById('c-hcli'),{type:'line',
-      data:{labels:HORARIOS.map(h=>h.h),datasets:[{data:HORARIOS.map(h=>h.cli),borderColor:GREEN,backgroundColor:'rgba(170,204,71,.1)',fill:true,tension:.35,pointRadius:4,borderWidth:2.5,pointBackgroundColor:GREEN}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtN(c.raw)+' clientes'}}},
-        scales:{y:{ticks:{callback:v=>fmtN(v),font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:45,font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    charts['htk']=new Chart(document.getElementById('c-htk'),{type:'line',
-      data:{labels:HORARIOS.map(h=>h.h),datasets:[{data:HORARIOS.map(h=>parseFloat(h.ticket.toFixed(2))),borderColor:'#D85A30',backgroundColor:'rgba(216,90,48,.07)',fill:true,tension:.3,pointRadius:4,borderWidth:2.5,pointBackgroundColor:'#D85A30'}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{min:30,max:80,ticks:{callback:v=>'R$ '+v,font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:45,font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    const tbody=document.getElementById('tbl-hora');tbody.innerHTML='';
-    HORARIOS.forEach(h=>{
-      const isPico=h.h===pico.h;
-      const bw=Math.round(h.total/maxH*100);
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td><b>${h.h}</b>${isPico?' <span class="peak-badge">pico</span>':''}</td>
-        <td style="text-align:right">${fmtN(h.cli)}</td>
-        <td style="text-align:right">${fmtBRL(h.total)}</td>
-        <td style="text-align:right">${fmtBRL(h.ticket)}</td>
-        <td style="text-align:right">${h.pct.toFixed(2)}%</td>
-        <td><div class="bar-mini" style="width:${Math.max(bw,1)}%;background:${PURPLE}"></div></td>`;
-      tbody.appendChild(tr);
-    });
-    tbody.appendChild(tot);
-    const totH=document.createElement('tr');totH.className='total-row';
-    totH.innerHTML=`<td>Total</td><td style="text-align:right">${fmtN(tC)}</td><td style="text-align:right">${fmtBRL(tH)}</td><td style="text-align:right">${fmtBRL(tH/Math.max(tC,1))}</td><td style="text-align:right">100,00%</td><td></td>`;
-    tbody.appendChild(totH);
-  }
-
-  if(currentPage==='folha'){
-    const F=FOLHA_DATA;
-    const meses=F.map(d=>d.mes);
-    const PURPLE='#47448E';const GREEN='#AACC47';const ORANGE='#F0A500';
-    // KPIs
-    const lastF=F[F.length-1];
-    const prevF=F[F.length-2];
-    function kpiF(el,label,val,prev,fmt){
-      const pct=prev?((val-prev)/prev*100).toFixed(1):null;
-      const color=val>=prev?'#22c55e':'#ef4444';
-      const arrow=val>=prev?'↑':'↓';
-      document.getElementById(el).innerHTML=`<div class="kpi-label">${label}</div><div class="kpi-val">${fmt(val)}</div>${pct?`<div class="kpi-delta" style="color:${color}">${arrow} ${Math.abs(pct)}% vs mês ant.</div>`:''}`;
-    }
-    document.getElementById('kpi-folha').innerHTML=`
-      <div class="kpi-card"><div class="kpi-label">Líquido Geral (${lastF.mes})</div><div class="kpi-val">${fmtBRL(lastF.liquido)}</div><div class="kpi-delta" style="color:${lastF.liquido>=prevF.liquido?'#22c55e':'#ef4444'}">${lastF.liquido>=prevF.liquido?'↑':'↓'} ${Math.abs(((lastF.liquido-prevF.liquido)/prevF.liquido*100)).toFixed(1)}% vs ${prevF.mes}</div></div>
-      <div class="kpi-card"><div class="kpi-label">INSS Total (${lastF.mes})</div><div class="kpi-val">${fmtBRL(lastF.inss)}</div></div>
-      <div class="kpi-card"><div class="kpi-label">FGTS (${lastF.mes})</div><div class="kpi-val">${fmtBRL(lastF.fgts)}</div></div>
-      <div class="kpi-card"><div class="kpi-label">Colaboradores (${lastF.mes})</div><div class="kpi-val">${lastF.n_emp}</div><div class="kpi-delta">${lastF.trabalhando} trabalhando</div></div>
-    `;
-    dc('fliquid');dc('finss');dc('ffgts');dc('femp');
-    charts['fliquid']=new Chart(document.getElementById('c-fliquid'),{type:'bar',
-      data:{labels:meses,datasets:[{label:'Líquido Geral',data:F.map(d=>d.liquido),backgroundColor:PURPLE,borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    charts['finss']=new Chart(document.getElementById('c-finss'),{type:'bar',
-      data:{labels:meses,datasets:[{label:'INSS Total',data:F.map(d=>d.inss),backgroundColor:'#D85A30',borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    charts['ffgts']=new Chart(document.getElementById('c-ffgts'),{type:'bar',
-      data:{labels:meses,datasets:[{label:'FGTS',data:F.map(d=>d.fgts),backgroundColor:GREEN,borderRadius:4}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-        scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k',font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    charts['femp']=new Chart(document.getElementById('c-femp'),{type:'line',
-      data:{labels:meses,datasets:[
-        {label:'Total',data:F.map(d=>d.n_emp),borderColor:PURPLE,backgroundColor:'rgba(71,68,142,.1)',fill:true,tension:.35,pointRadius:5,borderWidth:2.5,pointBackgroundColor:PURPLE},
-        {label:'Trabalhando',data:F.map(d=>d.trabalhando),borderColor:GREEN,backgroundColor:'rgba(170,204,71,.08)',fill:false,tension:.35,pointRadius:4,borderWidth:2,pointBackgroundColor:GREEN},
-        {label:'Demitidos',data:F.map(d=>d.demitidos),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.05)',fill:false,tension:.35,pointRadius:4,borderWidth:2,pointBackgroundColor:'#ef4444'}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top'},tooltip:{mode:'index'}},
-        scales:{y:{min:0,ticks:{stepSize:5,font:{family:'Nunito',weight:'700',size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false},ticks:{font:{family:'Nunito',weight:'700',size:11}}}}}
-    });
-    // Table
-    const tbody=document.getElementById('tbl-folha');tbody.innerHTML='';
-    F.forEach(d=>{
-      const tr=document.createElement('tr');
-      const turn=d.trabalhando?(d.demitidos/d.trabalhando*100):0;
-      tr.innerHTML=`<td><b>${d.mes}</b></td>
-        <td style="text-align:right">${d.n_emp}</td>
-        <td style="text-align:right">${d.trabalhando}</td>
-        <td style="text-align:right">${d.demitidos}</td>
-        <td style="text-align:right">${d.ferias}</td>
-        <td style="text-align:right"><b>${fmtBRL(d.liquido)}</b></td>
-        <td style="text-align:right">${fmtBRL(d.inss)}</td>
-        <td style="text-align:right">${fmtBRL(d.fgts)}</td>
-        <td style="text-align:right">${turn.toFixed(2)}%</td>`;
-      tbody.appendChild(tr);
-    });
-    // Total row
-    const sumLiq=F.reduce((a,d)=>a+d.liquido,0);
-    const sumInss=F.reduce((a,d)=>a+d.inss,0);
-    const sumFgts=F.reduce((a,d)=>a+d.fgts,0);
-    const totR=document.createElement('tr');totR.className='total-row';
-    totR.innerHTML=`<td>Total</td><td></td><td></td><td></td><td></td><td style="text-align:right"><b>${fmtBRL(sumLiq)}</b></td><td style="text-align:right">${fmtBRL(sumInss)}</td><td style="text-align:right">${fmtBRL(sumFgts)}</td><td></td>`;
-    tbody.appendChild(totR);
   }
 }
 
+function media(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
+
+function renderTurnover(){
+  const totalDeslig = DADOS.reduce((s,d)=>s+d.rescisoes,0);
+  const pior = DADOS.reduce((a,b)=>b.turn>a.turn?b:a);
+  document.getElementById('kpi-turnover').innerHTML = `
+    <div class="kpi"><label>Turnover Médio no Período</label><div class="kpi-val">${media(DADOS.map(d=>d.turn)).toFixed(2)}%</div><div class="kpi-sub">${DADOS[0].mes} – ${DADOS[DADOS.length-1].mes}</div></div>
+    <div class="kpi"><label>Total de Desligamentos</label><div class="kpi-val">${totalDeslig}</div><div class="kpi-sub">no período</div></div>
+    <div class="kpi"><label>Pior Mês</label><div class="kpi-val">${pior.mes}</div><div class="kpi-sub">${pior.turn.toFixed(2)}% de turnover</div></div>`;
+
+  dc('turnover');
+  charts['turnover']=new Chart(document.getElementById('c-turnover'),{type:'bar',
+    data:{labels:DADOS.map(d=>d.mes),datasets:[{data:DADOS.map(d=>+d.turn.toFixed(2)),backgroundColor:DADOS.map(d=>d.turn>10?RED:d.turn>5?'#E0A800':GREEN),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+      scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  document.getElementById('tbl-turnover').innerHTML = DADOS.map(d=>`<tr>
+    <td><b>${d.mes}</b></td><td style="text-align:right">${d.rescisoes}</td>
+    <td style="text-align:right">${d.headcount}</td><td style="text-align:right">${d.turn.toFixed(2)}%</td>
+  </tr>`).join('');
+}
+
+function renderAbsenteismo(){
+  const comAbs = DADOS.filter(d=>d.abs!=null);
+  const semAbs = DADOS.filter(d=>d.abs==null).map(d=>d.mes);
+  document.getElementById('abs-nota').textContent = semAbs.length
+    ? `Sem relatório de absenteísmo recebido para: ${semAbs.join(', ')}. Os demais meses usam os relatórios reais do Secullum (Ponto Offline).`
+    : `Todos os meses têm relatório real de absenteísmo.`;
+
+  if(comAbs.length){
+    const pior = comAbs.reduce((a,b)=>b.abs>a.abs?b:a);
+    document.getElementById('kpi-absenteismo').innerHTML = `
+      <div class="kpi"><label>Absenteísmo Médio</label><div class="kpi-val">${media(comAbs.map(d=>d.abs)).toFixed(2)}%</div><div class="kpi-sub">média de ${comAbs.length} meses apurados</div></div>
+      <div class="kpi"><label>Total de Horas Perdidas</label><div class="kpi-val">${fmtN(Math.round(comAbs.reduce((s,d)=>s+d.absAusenciasH,0)))}h</div><div class="kpi-sub">soma dos meses apurados</div></div>
+      <div class="kpi"><label>Pior Mês</label><div class="kpi-val">${pior.mes}</div><div class="kpi-sub">${pior.abs.toFixed(2)}%</div></div>`;
+  } else {
+    document.getElementById('kpi-absenteismo').innerHTML = `<div class="kpi"><label>Sem dados</label><div class="kpi-val">-</div></div>`;
+  }
+
+  dc('absenteismo');
+  if(comAbs.length){
+    charts['absenteismo']=new Chart(document.getElementById('c-absenteismo'),{type:'line',
+      data:{labels:comAbs.map(d=>d.mes),datasets:[{data:comAbs.map(d=>+d.abs.toFixed(2)),borderColor:RED,backgroundColor:'rgba(216,90,48,.08)',fill:true,tension:.3,pointRadius:5,borderWidth:2.5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+        scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+    });
+  }
+
+  document.getElementById('tbl-absenteismo').innerHTML = DADOS.map(d=>`<tr>
+    <td><b>${d.mes}</b></td>
+    <td style="text-align:right">${d.abs!=null? fmtN(Math.round(d.absPrevistasH))+'h' : '<span class="tag-nd">À apurar</span>'}</td>
+    <td style="text-align:right">${d.abs!=null? fmtN(Math.round(d.absAusenciasH))+'h' : '<span class="tag-nd">À apurar</span>'}</td>
+    <td style="text-align:right">${d.abs!=null? d.abs.toFixed(2)+'%' : '<span class="tag-nd">À apurar</span>'}</td>
+  </tr>`).join('');
+}
+
+function renderHeadcount(){
+  const last = DADOS[DADOS.length-1];
+  const first = DADOS[0];
+  const variacao = last.headcount - first.headcount;
+  document.getElementById('kpi-headcount').innerHTML = `
+    <div class="kpi"><label>Headcount Atual (trabalhando)</label><div class="kpi-val">${last.headcount}</div><div class="kpi-sub">${last.mes}</div></div>
+    <div class="kpi"><label>Total Registrado</label><div class="kpi-val">${last.headcountTotal}</div><div class="kpi-sub">inclui afastados/em transição</div></div>
+    <div class="kpi"><label>Variação no Período</label><div class="kpi-val" style="color:${variacao>=0?'#3B8A3B':RED}">${variacao>=0?'+':''}${variacao}</div><div class="kpi-sub">${first.mes} → ${last.mes}</div></div>`;
+
+  dc('headcount');
+  charts['headcount']=new Chart(document.getElementById('c-headcount'),{type:'line',
+    data:{labels:DADOS.map(d=>d.mes),datasets:[
+      {label:'Total registrado',data:DADOS.map(d=>d.headcountTotal),borderColor:PURPLE,backgroundColor:'rgba(71,68,142,.06)',fill:false,tension:.3,pointRadius:4,borderWidth:2},
+      {label:'Trabalhando',data:DADOS.map(d=>d.headcount),borderColor:GREEN,backgroundColor:'rgba(170,204,71,.1)',fill:true,tension:.3,pointRadius:4,borderWidth:2.5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10.5}}}},
+      scales:{y:{ticks:{stepSize:5},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  document.getElementById('tbl-headcount').innerHTML = DADOS.map(d=>`<tr>
+    <td><b>${d.mes}</b></td><td style="text-align:right">${d.headcountTotal}</td>
+    <td style="text-align:right">${d.headcount}</td><td style="text-align:right">${d.rescisoes}</td>
+  </tr>`).join('');
+}
+
+function renderCustos(){
+  const last = DADOS[DADOS.length-1];
+  const comAbs = DADOS.filter(d=>d.abs!=null && d.custoAbs!=null);
+  const custoFolhaAcum = DADOS.reduce((s,d)=>s+d.custoFolha,0);
+  const custoTurnoverAcum = DADOS.reduce((s,d)=>s+d.custoTurnover,0);
+  const custoAbsAcum = comAbs.reduce((s,d)=>s+d.custoAbs,0);
+  document.getElementById('kpi-custos').innerHTML = `
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Custo Total da Folha Acumulado</label><div class="kpi-val">${fmtBRL(custoFolhaAcum)}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes} · líquido + INSS + FGTS</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-user-x"></i></div><label>Custo de Turnover Acumulado</label><div class="kpi-val">${fmtBRL(custoTurnoverAcum)}</div><div class="kpi-formula">aviso + 13º/férias prop. + multa FGTS por desligamento · assume 6 meses de casa (referência do setor)</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar-off"></i></div><label>Custo de Absenteísmo Acumulado</label><div class="kpi-val">${comAbs.length? fmtBRL(custoAbsAcum) : '-'}</div><div class="kpi-formula">${comAbs.length? 'custo/hora × horas de ausência · soma de '+comAbs.length+' meses apurados' : 'sem relatório de absenteísmo'}</div></div>`;
+
+  dc('custo-folha');
+  charts['custo-folha']=new Chart(document.getElementById('c-custo-folha'),{type:'bar',
+    data:{labels:DADOS.map(d=>d.mes),datasets:[{data:DADOS.map(d=>Math.round(d.custoFolha)),backgroundColor:PURPLE,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
+      scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  dc('custo-turnover');
+  charts['custo-turnover']=new Chart(document.getElementById('c-custo-turnover'),{type:'bar',
+    data:{labels:DADOS.map(d=>d.mes),datasets:[{data:DADOS.map(d=>Math.round(d.custoTurnover)),backgroundColor:RED,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
+      scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  dc('custo-abs');
+  if(comAbs.length){
+    charts['custo-abs']=new Chart(document.getElementById('c-custo-abs'),{type:'bar',
+      data:{labels:comAbs.map(d=>d.mes),datasets:[{data:comAbs.map(d=>Math.round(d.custoAbs)),backgroundColor:'#E0A800',borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
+        scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+    });
+  }
+
+  document.getElementById('tbl-custos').innerHTML = DADOS.map(d=>`<tr>
+    <td><b>${d.mes}</b></td>
+    <td style="text-align:right">${fmtBRL(d.liquido)}</td>
+    <td style="text-align:right">${fmtBRL(d.inss)}</td>
+    <td style="text-align:right">${fmtBRL(d.fgts)}</td>
+    <td style="text-align:right"><b>${fmtBRL(d.custoFolha)}</b></td>
+    <td style="text-align:right">${fmtBRL(d.custoTurnover)}</td>
+    <td style="text-align:right">${d.custoAbs!=null? fmtBRL(d.custoAbs) : '<span class="tag-nd">À apurar</span>'}</td>
+  </tr>`).join('');
+}
 
 /* ═══════════ SIMULADOR DE RESCISÃO ═══════════ */
 function calcINSS(sal){
   const tab=[[1518.00,.075],[2793.88,.09],[4190.83,.12],[8157.41,.14]];
   let inss=0,ant=0;
-  for(const[teto,aliq]of tab){
-    if(sal<=ant)break;
-    inss+=( Math.min(sal,teto)-ant )*aliq;
-    ant=teto;
-  }
+  for(const[teto,aliq]of tab){ if(sal<=ant)break; inss+=(Math.min(sal,teto)-ant)*aliq; ant=teto; }
   return inss;
 }
 function calcIRRF(base){
   const tab=[[2259.20,0,0],[2826.65,.075,169.44],[3751.05,.15,381.44],[4664.68,.225,662.77],[Infinity,.275,896.00]];
-  for(const[lim,aliq,ded]of tab){if(base<=lim)return Math.max(0,base*aliq-ded);}
+  for(const[lim,aliq,ded]of tab){ if(base<=lim) return Math.max(0,base*aliq-ded); }
   return 0;
 }
 function rescRow(lbl,val,neg){
   return`<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--purple-light);border-radius:6px;font-size:13px">
     <span style="color:var(--text-muted);font-weight:600">${lbl}</span>
-    <span style="font-weight:800${neg?';color:#D85A30':''}">${neg?'− ':''} ${fmtBRL(val)}</span></div>`;
+    <span style="font-weight:800${neg?';color:'+RED:''}">${neg?'− ':''} ${fmtBRL(val)}</span></div>`;
 }
 function rescRowTotal(lbl,val,cor){
   return`<div style="display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;background:${cor}18;border:1px solid ${cor}40;margin-top:4px">
@@ -887,17 +514,14 @@ function calcResc(){
   let aviso=0, multaFgts=0;
   if(tipo==='sem_justa_causa'){ aviso=sal; multaFgts=fgtsDepositado*0.40; }
   if(tipo==='acordo'){ aviso=sal*0.5; multaFgts=fgtsDepositado*0.20; }
-  // pedido_demissao: sem aviso indenizado pela empresa, sem multa FGTS
 
   const baseFGTS=saldo+dec13;
   const novoFgts=baseFGTS*0.08;
-
   const bruto=saldo+dec13+ferias+terco+aviso;
   const inss=calcINSS(saldo);
   const irrf=tipo==='sem_justa_causa'?0:calcIRRF(Math.max(0,saldo-inss));
   const liquido=bruto-inss-irrf;
   const fgtsASacar=fgtsDepositado+novoFgts+multaFgts;
-
   const inssPat=saldo*0.20;
   const ratTerceiros=saldo*0.038;
   const custoTotal=bruto+inssPat+novoFgts+multaFgts+ratTerceiros;
@@ -927,7 +551,7 @@ function calcResc(){
         ${multaFgts?rescRow('Multa FGTS (empresa paga)',multaFgts):''}
         ${rescRow('RAT + Terceiros (~3,8%)',ratTerceiros)}
         <div style="height:4px"></div>
-        ${rescRowTotal('Custo total empregador',custoTotal,'#D85A30')}
+        ${rescRowTotal('Custo total empregador',custoTotal,RED)}
       </div>
       <div style="margin-top:14px;padding:10px 14px;background:var(--purple-light);border-radius:8px">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Tipo de desligamento</div>
@@ -936,77 +560,6 @@ function calcResc(){
       </div>
     </div>`;
 }
-
-/* ═══════════ INDICADORES CRUZADOS (RH + Vendas) ═══════════ */
-const _cruzCharts={};
-function _setCruzChart(id,cfg){
-  if(_cruzCharts[id]) _cruzCharts[id].destroy();
-  _cruzCharts[id]=new Chart(document.getElementById(id),cfg);
-}
-function renderCruzados(){
-  // Interseção: meses em que temos vendas mensais E folha real
-  const cruz=FOLHA_DATA.map(f=>{
-    const v=MENSAL_ALL.find(m=>m.mes===f.mes);
-    if(!v) return null;
-    const custoPessoal=f.liquido+f.inss+f.fgts;
-    return {
-      mes:f.mes, vendas:v.total, colaboradores:f.trabalhando,
-      fatPorFunc: f.trabalhando? v.total/f.trabalhando : null,
-      custoPessoal, custoReceita: v.total? custoPessoal/v.total*100 : null,
-      turnover: f.trabalhando? f.demitidos/f.trabalhando*100 : null
-    };
-  }).filter(Boolean);
-
-  document.getElementById('kpi-cruzados').innerHTML = cruz.length ? (()=>{
-    const last=cruz[cruz.length-1];
-    const avgFat=cruz.reduce((s,c)=>s+c.fatPorFunc,0)/cruz.length;
-    const avgCR=cruz.reduce((s,c)=>s+c.custoReceita,0)/cruz.length;
-    return `
-    <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Faturamento/Funcionário (${last.mes})</label><div class="kpi-val">${fmtBRL(last.fatPorFunc)}</div><div class="kpi-sub">média do período: ${fmtBRL(avgFat)}</div></div>
-    <div class="kpi"><div class="kpi-icon"><i class="ti ti-scale"></i></div><label>Custo Pessoal / Receita (${last.mes})</label><div class="kpi-val">${last.custoReceita.toFixed(1)}%</div><div class="kpi-sub">média do período: ${avgCR.toFixed(1)}%</div></div>
-    <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar"></i></div><label>Meses cruzados</label><div class="kpi-val">${cruz.length}</div><div class="kpi-sub">${cruz[0].mes} – ${last.mes}</div></div>`;
-  })() : '<div class="kpi"><label>Sem meses em comum entre Vendas e Folha</label></div>';
-
-  if(!cruz.length) return;
-
-  _setCruzChart('c-cruz-fat',{type:'bar',
-    data:{labels:cruz.map(c=>c.mes),datasets:[{label:'Faturamento por Funcionário',data:cruz.map(c=>Math.round(c.fatPorFunc)),backgroundColor:PURPLE,borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
-      scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
-  });
-
-  _setCruzChart('c-cruz-turn',{type:'line',
-    data:{labels:cruz.map(c=>c.mes),datasets:[
-      {label:'Turnover (%)',data:cruz.map(c=>+c.turnover.toFixed(2)),borderColor:'#D85A30',backgroundColor:'rgba(216,90,48,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2,yAxisID:'y'},
-      {label:'Vendas (R$ mil)',data:cruz.map(c=>Math.round(c.vendas/1000)),borderColor:GREEN,backgroundColor:'transparent',fill:false,tension:.3,pointRadius:4,borderWidth:2,borderDash:[5,3],yAxisID:'y1'}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10.5}}}},
-      scales:{
-        y:{position:'left',ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},
-        y1:{position:'right',ticks:{callback:v=>'R$'+v+'k'},grid:{display:false}},
-        x:{grid:{display:false}}
-      }}
-  });
-
-  _setCruzChart('c-cruz-custo',{type:'line',
-    data:{labels:cruz.map(c=>c.mes),datasets:[{label:'Custo Pessoal / Receita (%)',data:cruz.map(c=>+c.custoReceita.toFixed(2)),borderColor:PURPLE,backgroundColor:'rgba(71,68,142,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
-      scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
-  });
-
-  const tbody=document.getElementById('tbl-cruzados');
-  tbody.innerHTML=cruz.map(c=>`<tr>
-    <td><b>${c.mes}</b></td>
-    <td style="text-align:right">${fmtBRL(c.vendas)}</td>
-    <td style="text-align:right">${c.colaboradores}</td>
-    <td style="text-align:right">${fmtBRL(c.fatPorFunc)}</td>
-    <td style="text-align:right">${fmtBRL(c.custoPessoal)}</td>
-    <td style="text-align:right">${c.custoReceita.toFixed(1)}%</td>
-    <td style="text-align:right">${c.turnover.toFixed(1)}%</td>
-  </tr>`).join('');
-}
-
-let FOLHA_DATA=[];
 
 /* ═══════════ FIREBASE ═══════════ */
 const CLIENTE_ID='moreira';
@@ -1031,7 +584,7 @@ function fazerLogin(){
   if(!senha){erro.textContent='Digite a senha.';return;}
   btn.disabled=true; btn.textContent='Entrando...';
   auth.signInWithEmailAndPassword(LOGIN_EMAIL,senha)
-    .catch(err=>{
+    .catch(()=>{
       erro.textContent='Senha incorreta ou usuário sem acesso.';
       btn.disabled=false; btn.textContent='Entrar';
     });
@@ -1043,10 +596,10 @@ auth.onAuthStateChanged(async user=>{
     document.getElementById('dash-loading').classList.add('visible');
     try{
       await carregarDadosFirestore();
-      buildSidebar();
-      refresh();
       document.getElementById('dash-loading').classList.remove('visible');
       document.getElementById('app-root').classList.add('visible');
+      document.getElementById('topbar-badge').textContent = DADOS.length+' meses apurados · '+DADOS[0].mes+'–'+DADOS[DADOS.length-1].mes;
+      renderVisao();
     }catch(err){
       document.getElementById('dash-loading').textContent='Erro ao carregar dados: '+err.message;
     }
@@ -1062,41 +615,52 @@ auth.onAuthStateChanged(async user=>{
 async function carregarDadosFirestore(){
   const clienteRef=db.collection('clientes').doc(CLIENTE_ID);
   const ordemMeses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const snap=await clienteRef.collection('indicadores_mensais').get();
 
-  // ---- Vendas: operadores ----
-  const opsSnap=await clienteRef.collection('vendas_operadores').get();
-  ALL_OPS=opsSnap.docs.map(d=>d.data());
-  selected.clear();
-  ALL_OPS.forEach(o=>selected.add(o.id));
-
-  // ---- Vendas: mensal ----
-  const mensalSnap=await clienteRef.collection('vendas_mensal').get();
-  MENSAL_ALL=mensalSnap.docs.map(d=>d.data())
-    .sort((a,b)=> a.ano-b.ano || ordemMeses.indexOf(a.mes.split('/')[0])-ordemMeses.indexOf(b.mes.split('/')[0]));
-
-  // ---- Vendas: horários (2025 / 2026 / todos) ----
-  const horariosSnap=await clienteRef.collection('vendas_horarios').get();
-  HORARIOS_ALL={2025:[],2026:[],todos:[]};
-  horariosSnap.forEach(doc=>{ HORARIOS_ALL[doc.id]=doc.data().rows||[]; });
-  MENSAL=MENSAL_ALL;
-  HORARIOS=HORARIOS_ALL.todos;
-
-  // ---- RH: indicadores mensais (Folha de Pagamento real) ----
-  const indSnap=await clienteRef.collection('indicadores_mensais').get();
-  FOLHA_DATA=indSnap.docs.map(d=>d.data())
+  DADOS = snap.docs.map(d=>d.data())
     .sort((a,b)=> a.ano-b.ano || ordemMeses.indexOf(a.mes)-ordemMeses.indexOf(b.mes))
-    .map(d=>({
-      mes:`${d.mes}/${d.ano}`,
-      liquido:d.folha*1000,
-      inss: (d.inss_mil||0)*1000,
-      fgts: (d.fgts_mil||0)*1000,
-      n_emp: d.headcount_total ?? d.headcount,
-      trabalhando: d.headcount,
-      demitidos: d.rescisoes ?? 0,
-      ferias: d.ferias ?? 0
-    }));
+    .map(d=>{
+      const liquido=(d.folha||0)*1000;
+      const inss=(d.inss_mil||0)*1000;
+      const fgts=(d.fgts_mil||0)*1000;
+      const custoFolha=liquido+inss+fgts;
+      const custoPorColaborador = d.headcount? custoFolha/d.headcount : 0;
+      /* Custo de rescisão real (CLT): aviso prévio indenizado + 13º e férias
+         proporcionais (+1/3) + multa de 40% do FGTS acumulado, por desligamento.
+         Base salarial: líquido médio por colaborador no mês (melhor proxy
+         disponível — não temos salário-base individual).
+         Tempo médio de casa: 6 meses — não é um dado da Moreira & Filhos,
+         é uma referência do setor supermercadista brasileiro (turnover de
+         piso costuma superar 50%/ano, com saída típica por volta dos 6
+         meses de casa). Ajustável se houver dado real da empresa. */
+      const TEMPO_MEDIO_CASA_MESES = 6;
+      const salarioMedio = d.headcount? liquido/d.headcount : 0;
+      const dec13Prop = salarioMedio * (TEMPO_MEDIO_CASA_MESES/12);
+      const feriasProp = salarioMedio * (TEMPO_MEDIO_CASA_MESES/12);
+      const tercoFerias = feriasProp/3;
+      const avisoPrevio = salarioMedio;
+      const fgtsAcumulado = salarioMedio * 0.08 * TEMPO_MEDIO_CASA_MESES;
+      const multaFgts = fgtsAcumulado * 0.40;
+      const custoPorDesligamento = dec13Prop+feriasProp+tercoFerias+avisoPrevio+multaFgts;
+      const custoTurnover = custoPorDesligamento * (d.rescisoes||0);
+      let custoAbs=null;
+      if(d.abs!=null && d.abs_previstas_h){
+        const custoPorHora = custoFolha / d.abs_previstas_h;
+        custoAbs = custoPorHora * (d.abs_ausencias_h||0);
+      }
+      return {
+        mes:`${d.mes}/${d.ano}`,
+        turn: d.turn||0,
+        abs: d.abs!=null? d.abs : null,
+        absPrevistasH: d.abs_previstas_h||null,
+        absAusenciasH: d.abs_ausencias_h||null,
+        headcount: d.headcount,
+        headcountTotal: d.headcount_total ?? d.headcount,
+        rescisoes: d.rescisoes||0,
+        liquido, inss, fgts, custoFolha, custoTurnover, custoAbs
+      };
+    });
 }
-
 </script>
 </body>
 </html>
