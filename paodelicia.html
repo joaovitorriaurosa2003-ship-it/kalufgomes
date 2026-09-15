@@ -117,6 +117,10 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
   <a class="nav-item" id="nav-absenteismo" onclick="setPage('absenteismo')"><i class="ti ti-calendar-off"></i>Absenteísmo</a>
   <a class="nav-item" id="nav-headcount" onclick="setPage('headcount')"><i class="ti ti-users"></i>Headcount</a>
   <a class="nav-item" id="nav-custos" onclick="setPage('custos')"><i class="ti ti-report-money"></i>Custos</a>
+  <div class="nav-section">Por Departamento</div>
+  <a class="nav-item" id="nav-departamentos" onclick="setPage('departamentos')"><i class="ti ti-building-store"></i>Detalhe do Setor</a>
+  <a class="nav-item" id="nav-ranking" onclick="setPage('ranking')"><i class="ti ti-chart-bar"></i>Ranking de Setores</a>
+  <div class="nav-section">Ferramentas</div>
   <a class="nav-item" id="nav-sim" onclick="setPage('sim')"><i class="ti ti-calculator"></i>Simulador de Rescisão</a>
 
   <div class="sidebar-footer" style="padding:12px 16px">
@@ -216,7 +220,7 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
         </div>
         <div class="card">
           <div class="card-title">Custo de Turnover</div>
-          <div class="card-sub" style="font-style:italic">Estimativa CLT: aviso + 13º/férias prop. + multa FGTS, por desligamento · assume 6 meses de casa (referência do setor)</div>
+          <div class="card-sub" style="font-style:italic">Estimativa CLT: aviso + 13º/férias prop. + multa FGTS, por desligamento · salário-base real de R$ 1.803 · assume 6 meses de casa (referência do setor)</div>
           <div style="position:relative;width:100%;height:210px"><canvas id="c-custo-turnover"></canvas></div>
         </div>
         <div class="card">
@@ -238,6 +242,49 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
       </div>
     </div>
 
+    <!-- DETALHE DO SETOR -->
+    <div class="page" id="page-departamentos">
+      <div style="margin-bottom:4px">
+        <select id="dept-select" onchange="renderDepartamento()" style="padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);color:var(--text-dark);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;min-width:220px"></select>
+      </div>
+      <div class="row3" id="kpi-departamento"></div>
+      <div class="row2">
+        <div class="card">
+          <div class="card-title">Absenteísmo do Setor (%)</div>
+          <div class="card-sub" id="dept-abs-sub">—</div>
+          <div style="position:relative;width:100%;height:220px"><canvas id="c-dept-abs"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Turnover do Setor (%)</div>
+          <div class="card-sub" id="dept-turn-sub">—</div>
+          <div style="position:relative;width:100%;height:220px"><canvas id="c-dept-turn"></canvas></div>
+        </div>
+      </div>
+      <div class="card full">
+        <div class="card-title">Detalhe Mensal do Setor</div>
+        <table>
+          <thead><tr><th>Mês</th><th style="text-align:right">Absenteísmo</th><th style="text-align:right">Turnover</th></tr></thead>
+          <tbody id="tbl-departamento"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RANKING DE SETORES -->
+    <div class="page" id="page-ranking">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+          <button class="toggle-btn active" id="rank-btn-abs" onclick="setRankingMetric('abs')" style="padding:9px 16px;background:var(--brand-dark);color:#fff;border:none;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Absenteísmo</button>
+          <button class="toggle-btn" id="rank-btn-turn" onclick="setRankingMetric('turn')" style="padding:9px 16px;background:var(--white);color:var(--text-muted);border:none;border-left:1px solid var(--border);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Turnover</button>
+        </div>
+        <select id="ranking-mes-select" onchange="renderRanking()" style="padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);color:var(--text-dark);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;min-width:160px"></select>
+      </div>
+      <div class="card full">
+        <div class="card-title" id="ranking-title">Ranking de Absenteísmo por Setor</div>
+        <div class="card-sub" id="ranking-sub">—</div>
+        <div style="position:relative;width:100%;height:360px"><canvas id="c-ranking"></canvas></div>
+      </div>
+    </div>
+
     <!-- SIMULADOR DE RESCISÃO -->
     <div class="page" id="page-sim">
       <div class="card full">
@@ -247,7 +294,7 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
           <div>
             <div class="kpi" style="margin-bottom:10px">
               <label>Salário Base (R$)</label>
-              <input type="number" id="sim-salario" value="1600" step="50" oninput="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
+              <input type="number" id="sim-salario" value="1803" step="50" oninput="calcResc()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;margin-top:6px">
             </div>
             <div class="kpi" style="margin-bottom:10px">
               <label>Meses Trabalhados no Ano</label>
@@ -283,8 +330,8 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
 const fmtBRL=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtN=v=>v.toLocaleString('pt-BR');
 const BROWN='#7B4E2D', RUST='#B5402F', GOLD='#B8862F';
-const PAGE_TITLES={visao:'Visão Geral',turnover:'Turnover',absenteismo:'Absenteísmo',headcount:'Headcount',custos:'Custos',sim:'Simulador de Rescisão'};
-const PAGE_SUBS={visao:'Indicadores de RH · Pão Delícia',turnover:'Admissões, desligamentos e rotatividade',absenteismo:'Ausências sobre horas previstas',headcount:'Quadro de pessoal',custos:'Folha, turnover e absenteísmo em R$',sim:'Cálculo de verbas rescisórias'};
+const PAGE_TITLES={visao:'Visão Geral',turnover:'Turnover',absenteismo:'Absenteísmo',headcount:'Headcount',custos:'Custos',departamentos:'Detalhe do Setor',ranking:'Ranking de Setores',sim:'Simulador de Rescisão'};
+const PAGE_SUBS={visao:'Indicadores de RH · Pão Delícia',turnover:'Admissões, desligamentos e rotatividade',absenteismo:'Ausências sobre horas previstas',headcount:'Quadro de pessoal',custos:'Folha, turnover e absenteísmo em R$',departamentos:'Absenteísmo e turnover por setor',ranking:'Comparativo entre setores',sim:'Cálculo de verbas rescisórias'};
 
 let DADOS=[];
 let charts={};
@@ -292,7 +339,7 @@ function dc(id){ if(charts[id]){charts[id].destroy(); delete charts[id];} }
 function media(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
 
 function setPage(p){
-  ['visao','turnover','absenteismo','headcount','custos','sim'].forEach(x=>{
+  ['visao','turnover','absenteismo','headcount','custos','departamentos','ranking','sim'].forEach(x=>{
     document.getElementById('page-'+x).classList.toggle('active', x===p);
     document.getElementById('nav-'+x).classList.toggle('active', x===p);
   });
@@ -303,19 +350,23 @@ function setPage(p){
   if(p==='absenteismo') renderAbsenteismo();
   if(p==='headcount') renderHeadcount();
   if(p==='custos') renderCustos();
+  if(p==='departamentos') renderDepartamento();
+  if(p==='ranking') renderRanking();
   if(p==='sim') calcResc();
 }
 
 function renderVisao(){
   const last = DADOS[DADOS.length-1];
-  const comAbs = DADOS.filter(d=>d.abs!=null);
+  const comAbs = DADOS.filter(d=>d.abs!=null && d.custoAbs!=null);
   const totalDeslig = DADOS.reduce((s,d)=>s+d.rescisoes,0);
-  const brutoAcum = DADOS.reduce((s,d)=>s+d.brutoTotal,0);
+  const custoTurnoverAcum = DADOS.reduce((s,d)=>s+d.custoTurnover,0);
+  const custoAbsAcum = comAbs.reduce((s,d)=>s+d.custoAbs,0);
+  const custoRHAcum = custoTurnoverAcum + custoAbsAcum;
   document.getElementById('kpi-visao').innerHTML = `
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-users"></i></div><label>Headcount Atual</label><div class="kpi-val">${last.headcount}</div><div class="kpi-sub">${last.mes}</div></div>
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-arrows-exchange"></i></div><label>Desligamentos Acumulados</label><div class="kpi-val">${totalDeslig}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes} · turnover médio ${media(DADOS.map(d=>d.turn)).toFixed(1)}%</div></div>
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar-off"></i></div><label>Horas de Absenteísmo Acumuladas</label><div class="kpi-val">${comAbs.length? fmtN(Math.round(comAbs.reduce((s,d)=>s+d.absAusenciasH,0)))+'h' : '-'}</div><div class="kpi-sub">${comAbs.length? comAbs.length+' meses apurados · média '+media(comAbs.map(d=>d.abs)).toFixed(2)+'%' : 'sem relatório recebido'}</div></div>
-    <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Folha Bruta Acumulada</label><div class="kpi-val">${fmtBRL(brutoAcum)}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes} · Ltda + Estação</div></div>`;
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Custo de Turnover + Absenteísmo</label><div class="kpi-val">${fmtBRL(custoRHAcum)}</div><div class="kpi-formula">${fmtBRL(custoTurnoverAcum)} turnover + ${fmtBRL(custoAbsAcum)} absenteísmo · ${DADOS[0].mes}–${last.mes}</div></div>`;
 
   dc('visao-turn');
   charts['visao-turn']=new Chart(document.getElementById('c-visao-turn'),{type:'line',
@@ -421,7 +472,7 @@ function renderCustos(){
   const custoAbsAcum = comAbs.reduce((s,d)=>s+d.custoAbs,0);
   document.getElementById('kpi-custos').innerHTML = `
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Folha Bruta Acumulada</label><div class="kpi-val">${fmtBRL(brutoAcum)}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes} · Ltda + Estação</div></div>
-    <div class="kpi"><div class="kpi-icon"><i class="ti ti-user-x"></i></div><label>Custo de Turnover Acumulado</label><div class="kpi-val">${fmtBRL(custoTurnoverAcum)}</div><div class="kpi-formula">aviso + 13º/férias prop. + multa FGTS por desligamento · assume 6 meses de casa (referência do setor)</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-user-x"></i></div><label>Custo de Turnover Acumulado</label><div class="kpi-val">${fmtBRL(custoTurnoverAcum)}</div><div class="kpi-formula">aviso + 13º/férias prop. + multa FGTS · salário-base R$ 1.803 · assume 6 meses de casa (referência do setor)</div></div>
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar-off"></i></div><label>Custo de Absenteísmo Acumulado</label><div class="kpi-val">${comAbs.length? fmtBRL(custoAbsAcum) : '-'}</div><div class="kpi-formula">${comAbs.length? 'custo/hora × horas de ausência · soma de '+comAbs.length+' meses apurados' : 'sem relatório de absenteísmo'}</div></div>`;
 
   dc('custo-folha');
@@ -458,6 +509,95 @@ function renderCustos(){
     <td style="text-align:right">${fmtBRL(d.custoTurnover)}</td>
     <td style="text-align:right">${d.custoAbs!=null? fmtBRL(d.custoAbs) : '<span class="tag-nd">À apurar</span>'}</td>
   </tr>`).join('');
+}
+
+/* ═══════════ POR DEPARTAMENTO ═══════════ */
+let DEPT_ABS={}, DEPT_TURN={}, DEPTS=[];
+const ABS_DEPT_MESES=['Mar','Abr','Jun','Jul','Ago'];
+const TURN_DEPT_MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago'];
+
+function initDeptSelect(){
+  const sel=document.getElementById('dept-select');
+  sel.innerHTML=DEPTS.map(d=>`<option value="${d}">${d}</option>`).join('');
+}
+
+function renderDepartamento(){
+  const dept=document.getElementById('dept-select').value||DEPTS[0];
+  const absVals=ABS_DEPT_MESES.map(m=>DEPT_ABS[dept][m]).filter(v=>v!==undefined);
+  const turnVals=TURN_DEPT_MESES.map(m=>DEPT_TURN[dept][m]).filter(v=>v!==undefined);
+  const absMedia=absVals.length? media(absVals):null;
+  const turnMedia=turnVals.length? media(turnVals):null;
+  const absGeralMedia=media(DADOS.filter(d=>d.abs!=null).map(d=>d.abs/100));
+
+  document.getElementById('kpi-departamento').innerHTML=`
+    <div class="kpi"><label>Absenteísmo Médio do Setor</label><div class="kpi-val">${absMedia!=null? (absMedia*100).toFixed(2)+'%':'-'}</div><div class="kpi-sub">média de ${absVals.length} meses apurados</div></div>
+    <div class="kpi"><label>Turnover Médio do Setor</label><div class="kpi-val">${turnMedia!=null? (turnMedia*100).toFixed(2)+'%':'-'}</div><div class="kpi-sub">média de ${turnVals.length} meses</div></div>
+    <div class="kpi"><label>Comparado à Empresa</label><div class="kpi-val" style="color:${absMedia!=null&&absMedia>absGeralMedia?RUST:'#3B8A3B'}">${absMedia!=null? ((absMedia-absGeralMedia)*100>=0?'+':'')+((absMedia-absGeralMedia)*100).toFixed(2)+'%':'-'}</div><div class="kpi-sub">absenteísmo vs. média geral</div></div>`;
+
+  document.getElementById('dept-abs-sub').textContent=`${dept} · referência setorial ≤ 3,0%`;
+  document.getElementById('dept-turn-sub').textContent=`${dept} · referência setorial ≤ 5,0%`;
+
+  dc('dept-abs');
+  const absMesesComDado=ABS_DEPT_MESES.filter(m=>DEPT_ABS[dept][m]!==undefined);
+  if(absMesesComDado.length){
+    charts['dept-abs']=new Chart(document.getElementById('c-dept-abs'),{type:'line',
+      data:{labels:absMesesComDado,datasets:[{data:absMesesComDado.map(m=>+(DEPT_ABS[dept][m]*100).toFixed(2)),borderColor:RUST,backgroundColor:'rgba(181,64,47,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+        scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+    });
+  }
+
+  dc('dept-turn');
+  const turnMesesComDado=TURN_DEPT_MESES.filter(m=>DEPT_TURN[dept][m]!==undefined);
+  charts['dept-turn']=new Chart(document.getElementById('c-dept-turn'),{type:'line',
+    data:{labels:turnMesesComDado,datasets:[{data:turnMesesComDado.map(m=>+(DEPT_TURN[dept][m]*100).toFixed(2)),borderColor:BROWN,backgroundColor:'rgba(123,78,45,.08)',fill:true,tension:.3,pointRadius:4,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+      scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+  });
+
+  const mesesUniao=[...new Set([...ABS_DEPT_MESES,...TURN_DEPT_MESES])].sort((a,b)=>TURN_DEPT_MESES.indexOf(a)-TURN_DEPT_MESES.indexOf(b));
+  document.getElementById('tbl-departamento').innerHTML=mesesUniao.map(m=>{
+    const a=DEPT_ABS[dept][m], t=DEPT_TURN[dept][m];
+    return `<tr><td><b>${m}/2026</b></td>
+      <td style="text-align:right">${a!==undefined? (a*100).toFixed(2)+'%' : '<span class="tag-nd">À apurar</span>'}</td>
+      <td style="text-align:right">${t!==undefined? (t*100).toFixed(2)+'%' : '<span class="tag-nd">À apurar</span>'}</td></tr>`;
+  }).join('');
+}
+
+/* ═══════════ RANKING DE SETORES ═══════════ */
+let rankingMetric='abs';
+function setRankingMetric(m){
+  rankingMetric=m;
+  document.getElementById('rank-btn-abs').style.background = m==='abs'?'var(--brand-dark)':'var(--white)';
+  document.getElementById('rank-btn-abs').style.color = m==='abs'?'#fff':'var(--text-muted)';
+  document.getElementById('rank-btn-turn').style.background = m==='turn'?'var(--brand-dark)':'var(--white)';
+  document.getElementById('rank-btn-turn').style.color = m==='turn'?'#fff':'var(--text-muted)';
+  initRankingMesSelect();
+  renderRanking();
+}
+function initRankingMesSelect(){
+  const meses=rankingMetric==='abs'?ABS_DEPT_MESES:TURN_DEPT_MESES;
+  const sel=document.getElementById('ranking-mes-select');
+  sel.innerHTML=meses.map(m=>`<option value="${m}">${m}/2026</option>`).join('');
+  sel.value=meses[meses.length-1];
+}
+function renderRanking(){
+  const mes=document.getElementById('ranking-mes-select').value;
+  const isAbs=rankingMetric==='abs';
+  const src=isAbs?DEPT_ABS:DEPT_TURN;
+  const ref=isAbs?0.03:0.05;
+
+  document.getElementById('ranking-title').textContent=`Ranking de ${isAbs?'Absenteísmo':'Turnover'} por Setor`;
+  document.getElementById('ranking-sub').textContent=`${mes}/2026 · referência setorial ≤ ${(ref*100).toFixed(1)}%`;
+
+  const rows=DEPTS.map(d=>({dept:d,val:src[d][mes]})).filter(r=>r.val!==undefined).sort((a,b)=>b.val-a.val);
+
+  dc('ranking');
+  charts['ranking']=new Chart(document.getElementById('c-ranking'),{type:'bar',
+    data:{labels:rows.map(r=>r.dept),datasets:[{data:rows.map(r=>+(r.val*100).toFixed(2)),backgroundColor:rows.map(r=>r.val>ref*1.5?RUST:r.val>ref?GOLD:'#3B8A3B'),borderRadius:6}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},
+      scales:{x:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'}},y:{grid:{display:false},ticks:{color:'#3A2515',font:{weight:'600'}}}}}
+  });
 }
 
 /* ═══════════ SIMULADOR DE RESCISÃO ═══════════ */
@@ -582,6 +722,8 @@ auth.onAuthStateChanged(async user=>{
       document.getElementById('dash-loading').classList.remove('visible');
       document.getElementById('app-root').classList.add('visible');
       document.getElementById('topbar-badge').textContent = DADOS.length+' meses apurados · '+DADOS[0].mes+'–'+DADOS[DADOS.length-1].mes;
+      initDeptSelect();
+      initRankingMesSelect();
       renderVisao();
     }catch(err){
       document.getElementById('dash-loading').textContent='Erro ao carregar dados: '+err.message;
@@ -599,6 +741,8 @@ async function carregarDadosFirestore(){
   const clienteRef=db.collection('clientes').doc(CLIENTE_ID);
   const ordemMeses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const snap=await clienteRef.collection('indicadores_mensais').get();
+  const clienteDoc=await clienteRef.get();
+  const SALARIO_BASE = (clienteDoc.exists && clienteDoc.data().salarioBase) || null;
   const TEMPO_MEDIO_CASA_MESES = 6; // referência do setor, não é dado real da empresa
 
   DADOS = snap.docs.map(d=>d.data())
@@ -609,7 +753,9 @@ async function carregarDadosFirestore(){
       const brutoTotal = brutoLtda + brutoEstacao;
       const liquidoTotal = (d.folha_ltda_liquido||0) + (d.folha_estacao_liquido||0);
 
-      const salarioMedio = d.headcount? liquidoTotal/d.headcount : 0;
+      // Salário-base real da empresa (Pão Delícia: R$ 1.803), com fallback pro
+      // líquido médio caso um cliente novo ainda não tenha esse dado cadastrado.
+      const salarioMedio = SALARIO_BASE!=null ? SALARIO_BASE : (d.headcount? liquidoTotal/d.headcount : 0);
       const dec13Prop = salarioMedio * (TEMPO_MEDIO_CASA_MESES/12);
       const feriasProp = salarioMedio * (TEMPO_MEDIO_CASA_MESES/12);
       const tercoFerias = feriasProp/3;
@@ -637,6 +783,12 @@ async function carregarDadosFirestore(){
         brutoLtda, brutoEstacao, brutoTotal, custoTurnover, custoAbs
       };
     });
+
+  const deptAbsSnap=await clienteRef.collection('departamentos_abs').get();
+  DEPT_ABS={}; deptAbsSnap.forEach(doc=>{ DEPT_ABS[doc.id]=doc.data(); });
+  const deptTurnSnap=await clienteRef.collection('departamentos_turn').get();
+  DEPT_TURN={}; deptTurnSnap.forEach(doc=>{ DEPT_TURN[doc.id]=doc.data(); });
+  DEPTS=Object.keys(DEPT_ABS);
 }
 </script>
 </body>
