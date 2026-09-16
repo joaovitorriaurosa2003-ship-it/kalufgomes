@@ -587,6 +587,7 @@ auth.onAuthStateChanged(async user=>{
     document.getElementById('login-gate').classList.add('hidden');
     document.getElementById('dash-loading').classList.add('visible');
     try{
+      await user.getIdToken(true); // força renovar o token, senão custom claims recentes podem não valer numa sessão já em cache
       await carregarDadosFirestore();
       document.getElementById('dash-loading').classList.remove('visible');
       document.getElementById('app-root').classList.add('visible');
