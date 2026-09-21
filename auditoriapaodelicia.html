@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoria Balcão — Pão Delícia</title>
+<meta name="description" content="Webapp para preencher, validar e acompanhar as auditorias diárias de organização, limpeza e operação do balcão da Pão Delícia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,600&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase (compat SDK, sem bundler, igual ao padrão MeuRH/MeuNutri/MeuPsi) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  html,body{height:100%}
+  .hidden{display:none !important}
+  .login-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--cream)}
+  .login-card{background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:34px 30px; width:100%; max-width:360px; box-shadow:var(--shadow); text-align:center}
+  .login-card .brand-mark{width:52px;height:52px;border-radius:14px;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--brown-3);font-family:'Fraunces',serif;font-weight:700;font-size:24px;margin:0 auto 14px}
+  .login-card h2{font-size:19px; margin-bottom:4px}
+  .login-card p{color:var(--ink-soft); font-size:13px; margin:0 0 20px}
+  .login-card .field{margin-bottom:12px; text-align:left}
+  .login-card input{width:100%}
+  .login-card .btn{width:100%; justify-content:center; margin-top:6px}
+  .login-error{color:var(--crit); font-size:12.5px; font-weight:700; margin-top:10px; min-height:16px}
+  .logout-item{margin-top:2px; opacity:.9}
+  :root{
+    --brown:#5C2E08; --brown-2:#7A4419; --brown-3:#3E1F06;
+    --gold:#C49A6C; --gold-soft:#E9D7BE;
+    --cream:#FBF6EE; --paper:#FFFFFF; --line:#E7DCC9;
+    --ink:#2B1B0E; --ink-soft:#7A6A56;
+    --ok:#2E7D32; --ok-bg:#E5F3E6;
+    --warn:#B4740E; --warn-bg:#FBF0DC;
+    --crit:#B23A2E; --crit-bg:#FBE6E2;
+    --shadow: 0 10px 30px -14px rgba(60,32,8,.35);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#221208; --paper:#2C180B; --line:#4A2D14;
+      --ink:#F3E7D6; --ink-soft:#C7AF92;
+      --gold-soft:#4A3418;
+      --ok-bg:#173420; --warn-bg:#3A2A0C; --crit-bg:#3A1912;
+      --shadow: 0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#221208; --paper:#2C180B; --line:#4A2D14;
+    --ink:#F3E7D6; --ink-soft:#C7AF92;
+    --gold-soft:#4A3418;
+    --ok-bg:#173420; --warn-bg:#3A2A0C; --crit-bg:#3A1912;
+    --shadow: 0 10px 30px -14px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--cream); color:var(--ink); font-family:'Nunito',system-ui,sans-serif; margin:0}
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif; letter-spacing:.2px; margin:0}
+  .num{font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums}
+  a{color:inherit}
+  button{font-family:inherit}
+
+  .shell{display:flex; min-height:100vh}
+  .side{
+    width:248px; flex:none; background:linear-gradient(180deg,var(--brown-3),var(--brown));
+    color:#F3E7D6; padding:22px 16px; display:flex; flex-direction:column; gap:22px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{display:flex; align-items:center; gap:10px; padding:0 6px}
+  .brand-mark{width:38px;height:38px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;color:var(--brown-3);font-family:'Fraunces',serif;font-weight:700;font-size:19px;flex:none}
+  .brand-text .t1{font-family:'Fraunces',serif; font-size:17px; line-height:1.1}
+  .brand-text .t2{font-size:11px; color:#D8C3A5; letter-spacing:.3px}
+
+  .nav{display:flex; flex-direction:column; gap:4px}
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+    cursor:pointer; color:#E9D9C2; font-weight:700; font-size:13.5px; border:1px solid transparent;
+  }
+  .nav-item svg{width:17px;height:17px;flex:none;opacity:.85}
+  .nav-item:hover{background:rgba(255,255,255,.08)}
+  .nav-item.active{background:var(--gold); color:var(--brown-3); border-color:var(--gold)}
+  .nav-item.active svg{opacity:1}
+
+  .side-foot{margin-top:auto; font-size:11px; color:#C7AF92; padding:0 6px; line-height:1.5}
+
+  .main{flex:1; min-width:0; padding:26px 30px 60px; max-width:1180px}
+  .topbar{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:22px; flex-wrap:wrap}
+  .topbar h1{font-size:26px}
+  .topbar p{margin:4px 0 0; color:var(--ink-soft); font-size:14px}
+  .pill{display:inline-flex; align-items:center; gap:6px; background:var(--paper); border:1px solid var(--line); padding:7px 12px; border-radius:999px; font-size:12.5px; font-weight:700; color:var(--ink-soft); box-shadow:var(--shadow)}
+  .pill b{color:var(--ink)}
+
+  .page{display:none}
+  .page.active{display:block; animation:fade .25s ease}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+
+  .card{background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:var(--shadow)}
+  .grid{display:grid; gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  @media (max-width:900px){.g4{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:1fr 1fr} .g2{grid-template-columns:1fr}}
+  @media (max-width:560px){.g4{grid-template-columns:1fr}}
+
+  .kpi{padding:16px; border-radius:14px; background:var(--paper); border:1px solid var(--line); box-shadow:var(--shadow)}
+  .kpi .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-soft); font-weight:800}
+  .kpi .val{font-size:27px; font-weight:700; margin-top:4px}
+  .kpi .sub{font-size:12px; margin-top:5px; color:var(--ink-soft)}
+
+  .field-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px}
+  .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:190px}
+  .field label{font-size:12px; font-weight:800; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.4px}
+  .field input[type=date], .field input[type=text], .field select{
+    border:1px solid var(--line); background:var(--cream); color:var(--ink); border-radius:10px; padding:10px 12px; font-size:14px; font-family:inherit;
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--gold); outline-offset:1px}
+
+  .cat-title{display:flex; align-items:center; gap:8px; margin:26px 0 12px}
+  .cat-title h3{font-size:15px}
+  .cat-line{flex:1; height:1px; background:var(--line)}
+
+  .item{padding:14px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:18px; align-items:flex-start; flex-wrap:wrap}
+  .item:last-child{border-bottom:none}
+  .item-label{font-size:14px; font-weight:700; max-width:520px; line-height:1.4}
+  .item-label .crit-flag{color:var(--crit); font-size:11.5px; font-weight:800; margin-left:6px; text-transform:uppercase; letter-spacing:.3px}
+  .opts{display:flex; gap:8px; flex-wrap:wrap}
+  .opt{padding:8px 14px; border-radius:999px; border:1.5px solid var(--line); background:var(--cream); font-size:12.5px; font-weight:800; cursor:pointer; color:var(--ink-soft); white-space:nowrap}
+  .opt.sel-ok{background:var(--ok-bg); border-color:var(--ok); color:var(--ok)}
+  .opt.sel-warn{background:var(--warn-bg); border-color:var(--warn); color:var(--warn)}
+  .opt.sel-crit{background:var(--crit-bg); border-color:var(--crit); color:var(--crit)}
+  .item input[type=text]{border:1px solid var(--line); background:var(--cream); color:var(--ink); border-radius:10px; padding:9px 12px; font-size:13.5px; min-width:220px; font-family:inherit}
+
+  .btn{border:none; border-radius:11px; padding:13px 22px; font-weight:800; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:8px}
+  .btn-primary{background:var(--brown); color:#F3E7D6}
+  .btn-primary:hover{background:var(--brown-2)}
+  .btn-ghost{background:transparent; border:1.5px solid var(--line); color:var(--ink)}
+  .btn-danger{background:var(--crit-bg); color:var(--crit); border:1.5px solid var(--crit)}
+
+  .banner{border-radius:12px; padding:13px 16px; font-size:13.5px; font-weight:700; margin-bottom:16px; display:flex; gap:10px; align-items:flex-start}
+  .banner.ok{background:var(--ok-bg); color:var(--ok)}
+  .banner.warn{background:var(--warn-bg); color:var(--warn)}
+  .banner.crit{background:var(--crit-bg); color:var(--crit)}
+  .banner ul{margin:6px 0 0; padding-left:18px; font-weight:600}
+
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-soft); padding:9px 10px; border-bottom:1.5px solid var(--line)}
+  td{padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr.clickable{cursor:pointer}
+  tr.clickable:hover{background:var(--cream)}
+  .table-wrap{overflow-x:auto}
+
+  .status-chip{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:800}
+  .status-chip.ok{background:var(--ok-bg); color:var(--ok)}
+  .status-chip.warn{background:var(--warn-bg); color:var(--warn)}
+  .status-chip.crit{background:var(--crit-bg); color:var(--crit)}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+  .filters{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center}
+  .filters select, .filters input{border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:9px; padding:8px 10px; font-size:13px; font-family:inherit}
+  .chk{display:flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:var(--ink-soft)}
+
+  .empty{text-align:center; padding:50px 20px; color:var(--ink-soft)}
+  .empty svg{width:40px;height:40px;opacity:.4; margin-bottom:10px}
+
+  .detail-item{display:flex; justify-content:space-between; gap:14px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+  .detail-item:last-child{border-bottom:none}
+  .detail-item .resp{font-weight:800}
+
+  .chart-box{height:260px}
+  .section-title{font-size:15px; margin-bottom:12px}
+  .muted{color:var(--ink-soft); font-size:12.5px}
+
+  .ref-card{margin-bottom:16px}
+  .ref-list{margin:0; padding-left:18px; font-size:13.5px; line-height:1.85}
+  .tabs-mini{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+  .tab-mini{padding:8px 14px; border-radius:9px; border:1.5px solid var(--line); background:var(--paper); font-size:12.5px; font-weight:800; cursor:pointer; color:var(--ink-soft)}
+  .tab-mini.active{background:var(--brown); color:#F3E7D6; border-color:var(--brown)}
+
+  ::-webkit-scrollbar{height:8px; width:8px}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px}
+</style>
+</head>
+
+<body>
+
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <div class="brand-mark">PD</div>
+    <h2>Auditoria de Balcão</h2>
+    <p>Pão Delícia &middot; entre com o acesso da equipe</p>
+    <form id="login-form">
+      <div class="field"><label>E-mail</label><input type="email" id="login-email" autocomplete="username" required></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-senha" autocomplete="current-password" required></div>
+      <button type="submit" class="btn btn-primary" id="login-btn">Entrar</button>
+      <div class="login-error" id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<div class="shell hidden" id="app-shell">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">PD</div>
+      <div class="brand-text">
+        <div class="t1">Pão Delícia</div>
+        <div class="t2">Auditoria de Balcão</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      Kaluf &amp; Gomes Soluções Empresariais<br>Dados sincronizados via Firebase.
+      <div class="nav-item logout-item" id="btn-logout" style="margin-top:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Sair</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">Nova Auditoria</h1>
+        <p id="page-sub">Preencha o checklist do turno e valide a conformidade do dia.</p>
+      </div>
+      <div class="pill" id="today-pill"></div>
+    </div>
+
+    <section class="page active" id="page-nova"></section>
+    <section class="page" id="page-historico"></section>
+    <section class="page" id="page-dashboard"></section>
+    <section class="page" id="page-escalas"></section>
+  </main>
+</div>
+
+<script>
+/* =========================================================================
+   DADOS DO CHECKLIST
+   ========================================================================= */
+const OPT = {
+  simnao: ["Sim","Não"],
+  simnaoparcial: ["Sim","Não","Parcial"],
+  simnaotalvez: ["Sim","Não","Talvez"],
+  reposicao: ["Foi Realizada","Não Foi Realizada"],
+  validade: ["Sim","Não","Apenas a Validade","Não Foi Retirado Produtos Vencidos","Não Foi Visto a Data de Validade"],
+};
+const CONFORMES = new Set(["Sim","Foi Realizada"]);
+const PARCIAIS  = new Set(["Parcial","Apenas a Validade","Talvez"]);
+const CATEGORIAS = ["Produtos e Validade","Limpeza e Organização","Operação e Insumos","Processos e Pessoas","Descarte e Lixo","Observações"];
+
+const ITENS_MANHA = [
+ {id:"m01",cat:"Produtos e Validade",label:"Reposição dos produtos gôndola",tipo:"opt",opts:OPT.reposicao,crit:false},
+ {id:"m02",cat:"Produtos e Validade",label:"Verificada data de validade e retirada dos produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
+ {id:"m03",cat:"Produtos e Validade",label:"Todos os produtos com preço",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m04",cat:"Limpeza e Organização",label:"Vidros, geladeiras e vitrines foram limpos",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m05",cat:"Limpeza e Organização",label:"Vitrine de bebidas limpa e com datas dentro do prazo",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m06",cat:"Operação e Insumos",label:"Adega limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m07",cat:"Produtos e Validade",label:"Placas dos alimentos colocadas",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m08",cat:"Produtos e Validade",label:"Produtos em exposição dentro do prazo de validade",tipo:"opt",opts:OPT.simnao,crit:true},
+ {id:"m09",cat:"Limpeza e Organização",label:"Vitrines de exposição limpas (Sobremesas, Roscas, Bolos, Frios, Leite, Laranja, Torta)",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m10",cat:"Operação e Insumos",label:"Utensílios limpos (Liquidificador, Chapa, Máquina de café)",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m11",cat:"Operação e Insumos",label:"Produtos sendo cobertos com o véu",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m12",cat:"Limpeza e Organização",label:"Câmara de resfriamento organizada",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m13",cat:"Operação e Insumos",label:"Embalagens repostas e local limpo",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m14",cat:"Operação e Insumos",label:"Insumos do balcão repostos (Leite, Gelo, Frios, Saladas, Coca, Laranja, Ovos, Pães)",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m15",cat:"Limpeza e Organização",label:"Vitrine de salgados limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m16",cat:"Limpeza e Organização",label:"Setor salgado limpo, organizado e caixas repostas",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m17",cat:"Descarte e Lixo",label:"Lixos orgânico e inorgânico retirados",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m18",cat:"Limpeza e Organização",label:"Balcões, chão e cadeiras limpos e organizados",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m19",cat:"Processos e Pessoas",label:"Encomendas anotadas e passadas corretamente",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m20",cat:"Processos e Pessoas",label:"Teve algum erro ou problema nas comandas",tipo:"opt",opts:OPT.simnao,crit:true},
+ {id:"m21",cat:"Processos e Pessoas",label:"Detergente e álcool repostos",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m22",cat:"Limpeza e Organização",label:"Banheiro dos clientes limpo e com tudo reposto",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m23",cat:"Processos e Pessoas",label:"Todas as funções sendo feitas conforme orientação",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m24",cat:"Descarte e Lixo",label:"Lixos sendo retirados e separação correta",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"m26",cat:"Produtos e Validade",label:"Pão de metro",tipo:"opt",opts:OPT.simnao,crit:false},
+];
+
+const ITENS_TARDE = [
+ {id:"t01",cat:"Limpeza e Organização",label:"Limpeza gôndula (realizada ou não e dia)",tipo:"texto",crit:false},
+ {id:"t02",cat:"Produtos e Validade",label:"Reposição dos produtos gôndula",tipo:"opt",opts:OPT.reposicao,crit:false},
+ {id:"t03",cat:"Produtos e Validade",label:"Foi olhada a data de validade e retirado produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
+ {id:"t04",cat:"Produtos e Validade",label:"Todos os produtos com preço",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t05",cat:"Limpeza e Organização",label:"Vidros, geladeiras e vitrines foram limpos",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t06",cat:"Limpeza e Organização",label:"Vitrine de bebidas limpa e com as datas dentro do prazo",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t07",cat:"Operação e Insumos",label:"Adega limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t08",cat:"Produtos e Validade",label:"Placas dos alimentos foi colocada",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t09",cat:"Produtos e Validade",label:"Produtos em exposição dentro do prazo de validade",tipo:"opt",opts:OPT.simnao,crit:true},
+ {id:"t10",cat:"Limpeza e Organização",label:"Vitrines de exposição limpas",tipo:"texto",crit:false},
+ {id:"t11",cat:"Operação e Insumos",label:"Embalagens repostas e local limpo",tipo:"opt",opts:OPT.simnaoparcial,crit:false},
+ {id:"t12",cat:"Operação e Insumos",label:"Insumos do balcão repostos",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t13",cat:"Operação e Insumos",label:"Os utensílios estão limpos",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t14",cat:"Limpeza e Organização",label:"Câmara de resfriamento está organizada",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t15",cat:"Operação e Insumos",label:"Os produtos estão sendo cobertos com o véu",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t16",cat:"Limpeza e Organização",label:"Vitrine de salgados limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t17",cat:"Limpeza e Organização",label:"Setor salgado limpo, organizado e reposto",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t18",cat:"Descarte e Lixo",label:"Foi retirado os lixos",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t19",cat:"Limpeza e Organização",label:"Balcões, chão e cadeiras limpos e organizados",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t20",cat:"Operação e Insumos",label:"Os equipamentos foram desligados",tipo:"opt",opts:OPT.simnao,crit:true},
+ {id:"t21",cat:"Processos e Pessoas",label:"As encomendas foram anotadas",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t22",cat:"Processos e Pessoas",label:"Teve algum erro ou problema nas comandas",tipo:"opt",opts:OPT.simnao,crit:true},
+ {id:"t23",cat:"Descarte e Lixo",label:"Os lixos estão sendo retirados",tipo:"opt",opts:OPT.simnaotalvez,crit:false},
+ {id:"t24",cat:"Processos e Pessoas",label:"Todas as funções estão sendo feitas conforme orientação",tipo:"opt",opts:OPT.simnao,crit:false},
+ {id:"t25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnaoparcial,crit:false},
+ {id:"t26",cat:"Produtos e Validade",label:"Pão de metro",tipo:"texto",crit:false},
+ {id:"t27",cat:"Observações",label:"Faça sua observação",tipo:"texto",crit:false},
+];
+
+const CHECKLISTS = {"Manhã":ITENS_MANHA,"Tarde":ITENS_TARDE};
+
+const ESCALAS = {
+  atribuicoes:[
+   {c:"Gabriela",f:"Gôndula / geladeira de sobremesa",p:"Todos os dias: tirar gelo, repor embalagens de plástico e isopor, repor cappuccino, leite, ketchup, maionese, sal sachê, açúcar sachê.",fr:"5x semana"},
+   {c:"Ana Laura",f:"Torta holandesa / laticínio",p:"Ligar luzes das estufas, colocar os bocais de café, repor café em grão e coador.",fr:"6x semana"},
+   {c:"Débora",f:"Rosca / bolos de pedaço",p:"Anotar variedades, tirar vencimentos.",fr:"6x semana"},
+   {c:"Luara e Vitória",f:"Geladeira de frios, leite, gelo, refrigerante, laranja, adega, despensa, embalagens",p:"Verificar quais salgados e quantidades a serem retirados.",fr:"6x semana"},
+   {c:"Débora",f:"Fatias",p:"Retirar produtos vencidos, repor produtos, organizar e limpar.",fr:"Limpeza 1x, reposição 3x, organização 6x"},
+   {c:"Amarilda e Gislaine",f:"Pão de metro e torradas",p:"Organização, limpeza e reposição dos insumos.",fr:"Limpeza 1x, reposição 6x, vidros 6x"},
+  ],
+  chapa:[
+   ["Segunda-feira","Rubia"],["Terça-feira","Gaby"],["Quarta-feira","Vitória"],
+   ["Quinta-feira","Débora"],["Sexta-feira","Ana Laura"],["Sábado","Ana Laura"],
+  ],
+  semanal:[
+   "Domingo: sem tarefa fixa extra registrada.",
+   "Segunda-feira: limpeza interna e externa da estufa, limpeza geral das gôndulas, portas das geladeiras.",
+   "Terça-feira: produtos Sobrinho e Advogada (permuta).",
+   "Quarta-feira: conferência café Orestes.",
+   "Quinta a sábado: rotina padrão diária, sem tarefa fixa extra registrada.",
+   "Todos os dias: luzes da vitrine, ligar chapa, ligar exaustor, suportes de café, conferir café, caixas no geral (salgado, pão de metro, tortas, coletiva).",
+  ],
+  abertura:[
+   "Conferência: luzes da vitrine, ligar chapa, ligar exaustor, suportes de café, conferir café, caixas no geral; portas das geladeiras limpas; limpeza geral dentro das estufas a cada 15 dias.",
+   "Organização: gôndulas, balcão, laranja, limão, reposição geral.",
+   "Reposições: frios, leite, gelo, embalagens, cappuccino, chocolate quente, Nescau, manteiga, requeijão, pão, calda de chocolate, mel, canela, raspas de chocolate.",
+   "Tortas: verificar variedades e validades, passar para a cozinha (Carminha), separar compras, pesar as que chegam, registrar no caderno e no produto; fechamento no dia 10. Holandesas: passar relação.",
+   "Maria Silvia: controlar produtos levados para Carmelo S. Augusto.",
+   "Pão de metro: verificar necessidade (polpas de fruta, carne), porcionadas em 150 g.",
+   "Câmaras e vitrines: limpeza, organização e retalhos.",
+   "Todos os dias: retirar produtos da Vó Dudu; terças: permuta Sobrinho e Advogada.",
+   "Treinamento de iniciação: teórico (estrutura, regras, normas, fichas técnicas) e prático com 1 balconista.",
+   "Café Orestes: verificar quantidade e solicitar reposição ao Julio quando necessário.",
+   "Escalas: folgas, quem deve o quê, horário de almoço, setores.",
+   "Encomendas: sair até as 06:00 — com Angélica, pão de metro com Amarilda, salgado conforme escala do mapa.",
+  ],
+  responsaveis:[
+   ["Ludimila","Frios do balcão e café, manteiga, requeijão, mel, calda de chocolate, raspas de chocolate."],
+   ["Luara","Embalagens em geral, gelo, leite."],
+   ["Heloisa","Roscas, salgado, pão."],
+   ["Larissa","Salgados."],
+   ["Laura","Gôndula, bolos, tortas."],
+   ["Débora","Fatiar frios, câmara de resfriamento, balcão e recebimento de mercadorias."],
+   ["Gislene","Pão de fábrica, café, câmara de resfriamento, recebimento de mercadorias, geladeira de laticínio."],
+   ["Angélica","Encomendas, retirada Vó Dudu, produtos Sobrinho e Advogada."],
+   ["Elielza","Geladeira de laticínio, atendimento."],
+   ["Yula","Gôndula, atendimento."],
+   ["Sandra","Embalar produtos, pesar e balcão."],
+  ],
+};
+
+/* =========================================================================
+   ESTADO (sincronizado com o Firestore — ver bloco FIREBASE mais abaixo)
+   ========================================================================= */
+let AUDITORIAS = [];
+
+// respostas do formulário em edição
+let respostasAtuais = {};
+let turnoAtual = "Manhã";
+
+/* =========================================================================
+   NAVEGAÇÃO
+   ========================================================================= */
+const ICONS = {
+  nova:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  hist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l4 2"/></svg>',
+  dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 4 3 5-7"/></svg>',
+  esc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+};
+const PAGES = [
+  {id:"nova",title:"Nova Auditoria",sub:"Preencha o checklist do turno e valide a conformidade do dia.",icon:ICONS.nova},
+  {id:"historico",title:"Histórico de Auditorias",sub:"Consulte, filtre e revise as auditorias já registradas.",icon:ICONS.hist},
+  {id:"dashboard",title:"Dashboard de Conformidade",sub:"Indicadores e tendências das auditorias registradas.",icon:ICONS.dash},
+  {id:"escalas",title:"Escalas e Atribuições",sub:"Referência fixa: rotina, atribuições e responsáveis por frente.",icon:ICONS.esc},
+];
+let currentPage = "nova";
+let charts = {};
+
+function renderNav(){
+  const nav = document.getElementById("nav");
+  nav.innerHTML = PAGES.map(p => `
+    <div class="nav-item ${p.id===currentPage?'active':''}" data-go="${p.id}">${p.icon}<span>${p.title}</span></div>
+  `).join("");
+  nav.querySelectorAll("[data-go]").forEach(el=>{
+    el.addEventListener("click",()=>goPage(el.dataset.go));
+  });
+}
+
+function goPage(id){
+  currentPage = id;
+  const meta = PAGES.find(p=>p.id===id);
+  document.getElementById("page-title").textContent = meta.title;
+  document.getElementById("page-sub").textContent = meta.sub;
+  document.querySelectorAll(".page").forEach(s=>s.classList.remove("active"));
+  document.getElementById("page-"+id).classList.add("active");
+  renderNav();
+  if(id==="nova") renderNova();
+  if(id==="historico") renderHistorico();
+  if(id==="dashboard") renderDashboard();
+  if(id==="escalas") renderEscalas();
+}
+
+function setTodayPill(){
+  const d = new Date();
+  const txt = d.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+  document.getElementById("today-pill").innerHTML = `Hoje &nbsp;<b>${txt}</b>`;
+}
+
+/* =========================================================================
+   REGRAS DE CONFORMIDADE
+   ========================================================================= */
+function calcConformidade(itens, respostas){
+  let pontos=0, total=0, criticosNao=0, faltando=[];
+  itens.forEach(it=>{
+    if(it.tipo==="texto") return;
+    const r = respostas[it.id];
+    if(r===undefined || r===null || r===""){ faltando.push(it.label); return; }
+    total++;
+    if(CONFORMES.has(r)) pontos+=1;
+    else if(PARCIAIS.has(r)) pontos+=0.5;
+    if(it.crit && !CONFORMES.has(r)) criticosNao++;
+  });
+  const pct = total ? Math.round((pontos/total)*1000)/10 : 0;
+  return {pct, criticosNao, faltando};
+}
+function statusFromPct(pct){
+  if(pct>=90) return {cls:"ok",label:"Conforme"};
+  if(pct>=70) return {cls:"warn",label:"Atenção"};
+  return {cls:"crit",label:"Crítico"};
+}
+function optClass(opt, resp){
+  if(resp!==opt) return "";
+  if(CONFORMES.has(opt)) return "sel-ok";
+  if(PARCIAIS.has(opt)) return "sel-warn";
+  return "sel-crit";
+}
+
+/* =========================================================================
+   PÁGINA: NOVA AUDITORIA
+   ========================================================================= */
+function renderNova(){
+  const el = document.getElementById("page-nova");
+  const itens = CHECKLISTS[turnoAtual];
+
+  let html = `
+    <div class="card" style="margin-bottom:18px">
+      <div class="field-row" style="margin-bottom:0">
+        <div class="field">
+          <label>Data da auditoria</label>
+          <input type="date" id="f-data" value="${new Date().toISOString().slice(0,10)}">
+        </div>
+        <div class="field">
+          <label>Turno</label>
+          <select id="f-turno">
+            <option ${turnoAtual==="Manhã"?"selected":""}>Manhã</option>
+            <option ${turnoAtual==="Tarde"?"selected":""}>Tarde</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Responsável pela auditoria</label>
+          <input type="text" id="f-resp" placeholder="Nome de quem está auditando" value="${respostasAtuais.__resp||''}">
+        </div>
+      </div>
+    </div>
+    <div id="form-banner"></div>
+    <div class="card">
+  `;
+
+  CATEGORIAS.forEach(cat=>{
+    const itensCat = itens.filter(i=>i.cat===cat);
+    if(!itensCat.length) return;
+    html += `<div class="cat-title"><h3>${cat}</h3><div class="cat-line"></div></div>`;
+    itensCat.forEach(it=>{
+      const critFlag = it.crit ? `<span class="crit-flag">Item crítico</span>` : "";
+      if(it.tipo==="texto"){
+        const val = respostasAtuais[it.id] || "";
+        html += `<div class="item">
+          <div class="item-label">${it.label}${critFlag}</div>
+          <input type="text" data-id="${it.id}" class="txt-input" placeholder="Registrar..." value="${val.replace(/"/g,'&quot;')}">
+        </div>`;
+      }else{
+        html += `<div class="item">
+          <div class="item-label">${it.label}${critFlag}</div>
+          <div class="opts" data-group="${it.id}">
+            ${it.opts.map(o=>`<div class="opt ${optClass(o,respostasAtuais[it.id])}" data-id="${it.id}" data-val="${o}">${o}</div>`).join("")}
+          </div>
+        </div>`;
+      }
+    });
+  });
+
+  html += `</div>
+    <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap">
+      <button class="btn btn-primary" id="btn-salvar">Validar e salvar auditoria</button>
+      <button class="btn btn-ghost" id="btn-limpar">Limpar formulário</button>
+    </div>
+  `;
+
+  el.innerHTML = html;
+
+  document.getElementById("f-turno").addEventListener("change", e=>{
+    turnoAtual = e.target.value;
+    respostasAtuais = {};
+    renderNova();
+  });
+  document.getElementById("f-resp").addEventListener("input", e=>{ respostasAtuais.__resp = e.target.value; });
+
+  el.querySelectorAll(".opt").forEach(o=>{
+    o.addEventListener("click", ()=>{
+      respostasAtuais[o.dataset.id] = o.dataset.val;
+      renderNova();
+      // restore scroll position isn't needed: quick re-render, fields keep order
+    });
+  });
+  el.querySelectorAll(".txt-input").forEach(inp=>{
+    inp.addEventListener("input", e=>{ respostasAtuais[e.target.dataset.id] = e.target.value; });
+  });
+
+  document.getElementById("btn-limpar").addEventListener("click", ()=>{
+    respostasAtuais = {};
+    renderNova();
+  });
+
+  document.getElementById("btn-salvar").addEventListener("click", ()=>{
+    const btnSalvar = document.getElementById("btn-salvar");
+    const data = document.getElementById("f-data").value;
+    const resp = (respostasAtuais.__resp||"").trim();
+    const banner = document.getElementById("form-banner");
+
+    if(!resp){
+      banner.innerHTML = `<div class="banner crit">Informe o nome do responsável pela auditoria antes de salvar.</div>`;
+      banner.scrollIntoView({behavior:"smooth"});
+      return;
+    }
+
+    const {pct, criticosNao, faltando} = calcConformidade(itens, respostasAtuais);
+
+    if(faltando.length){
+      banner.innerHTML = `<div class="banner crit">Faltam ${faltando.length} item(ns) para responder antes de validar:
+        <ul>${faltando.map(f=>`<li>${f}</li>`).join("")}</ul></div>`;
+      banner.scrollIntoView({behavior:"smooth"});
+      return;
+    }
+
+    const registro = {
+      data, turno: turnoAtual, responsavel: resp,
+      respostas: {...respostasAtuais}, pct, criticosNao,
+    };
+
+    btnSalvar.disabled = true; btnSalvar.textContent = "Salvando...";
+    salvarAuditoriaFirestore(registro)
+      .then(()=>{
+        const st = statusFromPct(pct);
+        banner.innerHTML = `
+          <div class="banner ${st.cls==='ok'?'ok':st.cls==='warn'?'warn':'crit'}">
+            Auditoria de ${turnoAtual} salva para ${new Date(data+"T00:00:00").toLocaleDateString("pt-BR")} — conformidade ${pct}% (${st.label}).
+            ${criticosNao>0 ? `<br>${criticosNao} item(ns) crítico(s) reprovado(s). Verifique e corrija imediatamente.` : "Nenhum item crítico reprovado."}
+          </div>`;
+        respostasAtuais = {};
+        banner.scrollIntoView({behavior:"smooth"});
+      })
+      .catch(err=>{
+        console.error(err);
+        banner.innerHTML = `<div class="banner crit">Não foi possível salvar no Firestore. Verifique sua conexão e tente novamente.</div>`;
+        banner.scrollIntoView({behavior:"smooth"});
+      })
+      .finally(()=>{
+        btnSalvar.disabled = false; btnSalvar.textContent = "Validar e salvar auditoria";
+      });
+  });
+}
+
+/* =========================================================================
+   PÁGINA: HISTÓRICO
+   ========================================================================= */
+let histFiltro = {turno:"todos", resp:"todos", criticos:false};
+let auditoriaAberta = null;
+
+function renderHistorico(){
+  const el = document.getElementById("page-historico");
+  if(!AUDITORIAS.length){
+    el.innerHTML = `<div class="card empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      <div>Nenhuma auditoria registrada ainda.<br>Use "Nova Auditoria" para começar.</div>
+    </div>`;
+    return;
+  }
+
+  const responsaveis = [...new Set(AUDITORIAS.map(a=>a.responsavel))].sort();
+  const ordenadas = [...AUDITORIAS].sort((a,b)=> b.data.localeCompare(a.data) || a.turno.localeCompare(b.turno));
+
+  const filtradas = ordenadas.filter(a=>{
+    if(histFiltro.turno!=="todos" && a.turno!==histFiltro.turno) return false;
+    if(histFiltro.resp!=="todos" && a.responsavel!==histFiltro.resp) return false;
+    if(histFiltro.criticos && a.criticosNao===0) return false;
+    return true;
+  });
+
+  let html = `
+    <div class="filters">
+      <select id="hf-turno">
+        <option value="todos">Todos os turnos</option>
+        <option value="Manhã" ${histFiltro.turno==="Manhã"?"selected":""}>Manhã</option>
+        <option value="Tarde" ${histFiltro.turno==="Tarde"?"selected":""}>Tarde</option>
+      </select>
+      <select id="hf-resp">
+        <option value="todos">Todos os responsáveis</option>
+        ${responsaveis.map(r=>`<option ${histFiltro.resp===r?"selected":""}>${r}</option>`).join("")}
+      </select>
+      <label class="chk"><input type="checkbox" id="hf-crit" ${histFiltro.criticos?"checked":""}> Somente com item crítico reprovado</label>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Turno</th><th>Responsável</th><th>Conformidade</th><th>Críticos</th><th>Status</th></tr></thead>
+        <tbody>
+        ${filtradas.map(a=>{
+          const st = statusFromPct(a.pct);
+          return `<tr class="clickable" data-id="${a.id}">
+            <td class="num">${new Date(a.data+"T00:00:00").toLocaleDateString("pt-BR")}</td>
+            <td>${a.turno}</td>
+            <td>${a.responsavel}</td>
+            <td class="num">${a.pct}%</td>
+            <td class="num">${a.criticosNao}</td>
+            <td><span class="status-chip ${st.cls}"><span class="dot"></span>${st.label}</span></td>
+          </tr>`;
+        }).join("")}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div id="detail-slot" style="margin-top:18px"></div>
+  `;
+  el.innerHTML = html;
+
+  document.getElementById("hf-turno").addEventListener("change", e=>{histFiltro.turno=e.target.value; renderHistorico();});
+  document.getElementById("hf-resp").addEventListener("change", e=>{histFiltro.resp=e.target.value; renderHistorico();});
+  document.getElementById("hf-crit").addEventListener("change", e=>{histFiltro.criticos=e.target.checked; renderHistorico();});
+
+  el.querySelectorAll("tr[data-id]").forEach(tr=>{
+    tr.addEventListener("click", ()=>{
+      auditoriaAberta = tr.dataset.id;
+      renderDetalhe();
+    });
+  });
+
+  if(auditoriaAberta && filtradas.some(a=>a.id===auditoriaAberta)) renderDetalhe();
+}
+
+function renderDetalhe(){
+  const slot = document.getElementById("detail-slot");
+  const a = AUDITORIAS.find(x=>x.id===auditoriaAberta);
+  if(!a || !slot) return;
+  const itens = CHECKLISTS[a.turno];
+  const st = statusFromPct(a.pct);
+
+  let html = `<div class="card">
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="kpi"><div class="lbl">Conformidade</div><div class="val num">${a.pct}%</div><div class="sub">${st.label}</div></div>
+      <div class="kpi"><div class="lbl">Itens críticos reprovados</div><div class="val num">${a.criticosNao}</div></div>
+      <div class="kpi"><div class="lbl">Registrado em</div><div class="val" style="font-size:15px">${a.criadoEm && a.criadoEm.toDate ? a.criadoEm.toDate().toLocaleString("pt-BR") : "—"}</div></div>
+    </div>`;
+
+  CATEGORIAS.forEach(cat=>{
+    const itensCat = itens.filter(i=>i.cat===cat);
+    if(!itensCat.length) return;
+    html += `<div class="cat-title"><h3>${cat}</h3><div class="cat-line"></div></div>`;
+    itensCat.forEach(it=>{
+      const r = a.respostas[it.id];
+      const naoConforme = it.crit && it.tipo!=="texto" && !CONFORMES.has(r);
+      html += `<div class="detail-item"><span>${naoConforme?"⚠️ ":""}${it.label}</span><span class="resp" style="color:${naoConforme?'var(--crit)':'inherit'}">${r||"—"}</span></div>`;
+    });
+  });
+
+  html += `<div style="margin-top:18px"><button class="btn btn-danger" id="btn-excluir">Excluir esta auditoria</button></div></div>`;
+  slot.innerHTML = html;
+
+  document.getElementById("btn-excluir").addEventListener("click", ()=>{
+    excluirAuditoriaFirestore(a.id)
+      .then(()=>{ auditoriaAberta = null; renderHistorico(); })
+      .catch(err=>{ console.error(err); alert("Não foi possível excluir. Verifique sua conexão e tente novamente."); });
+  });
+}
+
+/* =========================================================================
+   PÁGINA: DASHBOARD
+   ========================================================================= */
+function destroyCharts(){
+  Object.values(charts).forEach(c=>c && c.destroy());
+  charts = {};
+}
+
+function renderDashboard(){
+  const el = document.getElementById("page-dashboard");
+  destroyCharts();
+
+  if(!AUDITORIAS.length){
+    el.innerHTML = `<div class="card empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 4 3 5-7"/></svg>
+      <div>Nenhuma auditoria registrada ainda.<br>Os indicadores aparecem aqui assim que a primeira auditoria for salva.</div>
+    </div>`;
+    return;
+  }
+
+  const media = (AUDITORIAS.reduce((s,a)=>s+a.pct,0)/AUDITORIAS.length).toFixed(1);
+  const cem = AUDITORIAS.filter(a=>a.pct===100).length;
+  const totalCriticos = AUDITORIAS.reduce((s,a)=>s+a.criticosNao,0);
+
+  el.innerHTML = `
+    <div class="grid g4" style="margin-bottom:20px">
+      <div class="kpi"><div class="lbl">Auditorias registradas</div><div class="val num">${AUDITORIAS.length}</div></div>
+      <div class="kpi"><div class="lbl">Conformidade média</div><div class="val num">${media}%</div></div>
+      <div class="kpi"><div class="lbl">Auditorias 100% conformes</div><div class="val num">${cem}</div></div>
+      <div class="kpi"><div class="lbl">Itens críticos reprovados (total)</div><div class="val num">${totalCriticos}</div></div>
+    </div>
+    <div class="grid g2" style="margin-bottom:20px">
+      <div class="card"><div class="section-title">Evolução da conformidade</div><div class="chart-box"><canvas id="chart-evol"></canvas></div></div>
+      <div class="card"><div class="section-title">Conformidade média por turno</div><div class="chart-box"><canvas id="chart-turno"></canvas></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="section-title">Ranking por responsável</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Responsável</th><th>Auditorias</th><th>Conform. média</th><th>Críticos</th></tr></thead>
+          <tbody id="rank-resp"></tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Itens mais reprovados</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Item</th><th>Vezes não conforme</th></tr></thead>
+          <tbody id="rank-itens"></tbody>
+        </table></div>
+      </div>
+    </div>
+  `;
+
+  // evolução
+  const ordenadas = [...AUDITORIAS].sort((a,b)=>a.data.localeCompare(b.data) || a.turno.localeCompare(b.turno));
+  const ctx1 = document.getElementById("chart-evol").getContext("2d");
+  charts.evol = new Chart(ctx1, {
+    type:"line",
+    data:{
+      labels: ordenadas.map(a=>new Date(a.data+"T00:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" · "+a.turno[0]),
+      datasets:[{
+        label:"Conformidade (%)", data: ordenadas.map(a=>a.pct),
+        borderColor:"#C49A6C", backgroundColor:"rgba(196,154,108,.18)", fill:true, tension:.35, pointRadius:3,
+      }]
+    },
+    options:{responsive:true, maintainAspectRatio:false,
+      scales:{y:{min:0,max:100,ticks:{callback:v=>v+"%"}}},
+      plugins:{legend:{display:false}}}
+  });
+
+  // turno
+  const turnos = ["Manhã","Tarde"];
+  const mediasTurno = turnos.map(t=>{
+    const arr = AUDITORIAS.filter(a=>a.turno===t);
+    return arr.length ? Math.round((arr.reduce((s,a)=>s+a.pct,0)/arr.length)*10)/10 : 0;
+  });
+  const ctx2 = document.getElementById("chart-turno").getContext("2d");
+  charts.turno = new Chart(ctx2, {
+    type:"bar",
+    data:{labels:turnos, datasets:[{label:"Conformidade média", data:mediasTurno, backgroundColor:["#5C2E08","#C49A6C"], borderRadius:8}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      scales:{y:{min:0,max:100,ticks:{callback:v=>v+"%"}}},
+      plugins:{legend:{display:false}}}
+  });
+
+  // ranking responsável
+  const porResp = {};
+  AUDITORIAS.forEach(a=>{
+    if(!porResp[a.responsavel]) porResp[a.responsavel] = {n:0,soma:0,crit:0};
+    porResp[a.responsavel].n++; porResp[a.responsavel].soma+=a.pct; porResp[a.responsavel].crit+=a.criticosNao;
+  });
+  const rankResp = Object.entries(porResp).map(([nome,v])=>({nome, n:v.n, media:Math.round((v.soma/v.n)*10)/10, crit:v.crit}))
+    .sort((a,b)=>b.media-a.media);
+  document.getElementById("rank-resp").innerHTML = rankResp.map(r=>
+    `<tr><td>${r.nome}</td><td class="num">${r.n}</td><td class="num">${r.media}%</td><td class="num">${r.crit}</td></tr>`
+  ).join("") || `<tr><td colspan="4" class="muted">Sem dados.</td></tr>`;
+
+  // itens mais reprovados
+  const contagem = {};
+  AUDITORIAS.forEach(a=>{
+    const itens = CHECKLISTS[a.turno];
+    itens.forEach(it=>{
+      if(it.tipo==="texto") return;
+      const r = a.respostas[it.id];
+      if(r && !CONFORMES.has(r)) contagem[it.label] = (contagem[it.label]||0)+1;
+    });
+  });
+  const rankItens = Object.entries(contagem).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  document.getElementById("rank-itens").innerHTML = rankItens.map(([label,n])=>
+    `<tr><td>${label}</td><td class="num">${n}</td></tr>`
+  ).join("") || `<tr><td colspan="2" class="muted">Nenhum item não conforme registrado.</td></tr>`;
+}
+
+/* =========================================================================
+   PÁGINA: ESCALAS
+   ========================================================================= */
+function renderEscalas(){
+  const el = document.getElementById("page-escalas");
+  el.innerHTML = `
+    <div class="card ref-card">
+      <div class="section-title">Atribuições fixas por colaborador</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Colaborador</th><th>Função</th><th>Processo</th><th>Frequência</th></tr></thead>
+        <tbody>${ESCALAS.atribuicoes.map(a=>`<tr><td>${a.c}</td><td>${a.f}</td><td>${a.p}</td><td>${a.fr}</td></tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+    <div class="grid g2" style="margin:18px 0">
+      <div class="card ref-card" style="margin-bottom:0">
+        <div class="section-title">Escala de limpeza da chapa</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Dia</th><th>Responsável</th></tr></thead>
+          <tbody>${ESCALAS.chapa.map(([d,r])=>`<tr><td>${d}</td><td>${r}</td></tr>`).join("")}</tbody>
+        </table></div>
+      </div>
+      <div class="card ref-card" style="margin-bottom:0">
+        <div class="section-title">Rotina semanal fixa</div>
+        <ul class="ref-list">${ESCALAS.semanal.map(s=>`<li>${s}</li>`).join("")}</ul>
+      </div>
+    </div>
+    <div class="card ref-card">
+      <div class="section-title">Rotina de abertura (conferência diária)</div>
+      <ul class="ref-list">${ESCALAS.abertura.map(s=>`<li>${s}</li>`).join("")}</ul>
+    </div>
+    <div class="card ref-card" style="margin-bottom:0">
+      <div class="section-title">Responsabilidades por colaborador</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Colaborador</th><th>Responsabilidade</th></tr></thead>
+        <tbody>${ESCALAS.responsaveis.map(([c,r])=>`<tr><td>${c}</td><td>${r}</td></tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+  `;
+}
+
+/* =========================================================================
+   FIREBASE — AUTENTICAÇÃO E SINCRONIZAÇÃO (Firestore)
+   ========================================================================= */
+// PREENCHA com o objeto de configuração do seu projeto Firebase
+// (Console do Firebase → Configurações do projeto → Seus apps → SDK setup and configuration)
+const firebaseConfig = {
+  apiKey: "AIzaSyCg4g73OHOX0RB1gPQlC5doKMl2PyaDXqg",
+  authDomain: "auditorias-4e537.firebaseapp.com",
+  projectId: "auditorias-4e537",
+  storageBucket: "auditorias-4e537.firebasestorage.app",
+  messagingSenderId: "5798036717",
+  appId: "1:5798036717:web:05a9bad604d78be97378e4",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let unsubscribeAuditorias = null;
+
+function subscribeAuditorias(){
+  if(unsubscribeAuditorias) unsubscribeAuditorias();
+  unsubscribeAuditorias = db.collection("auditorias").onSnapshot(snap=>{
+    AUDITORIAS = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(currentPage==="historico") renderHistorico();
+    if(currentPage==="dashboard") renderDashboard();
+  }, err=>{
+    console.error("Erro ao sincronizar auditorias:", err);
+  });
+}
+
+function salvarAuditoriaFirestore(registro){
+  const docId = registro.data + "_" + registro.turno;
+  return db.collection("auditorias").doc(docId).set({
+    data: registro.data,
+    turno: registro.turno,
+    responsavel: registro.responsavel,
+    respostas: registro.respostas,
+    pct: registro.pct,
+    criticosNao: registro.criticosNao,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+  }, {merge:true});
+}
+
+function excluirAuditoriaFirestore(docId){
+  return db.collection("auditorias").doc(docId).delete();
+}
+
+/* =========================================================================
+   BOOT / LOGIN GATE
+   ========================================================================= */
+function boot(){
+  setTodayPill();
+  renderNav();
+  renderNova();
+}
+
+auth.onAuthStateChanged(user=>{
+  const loginWrap = document.getElementById("login-wrap");
+  const shell = document.getElementById("app-shell");
+  if(user){
+    loginWrap.classList.add("hidden");
+    shell.classList.remove("hidden");
+    boot();
+    subscribeAuditorias();
+  }else{
+    if(unsubscribeAuditorias){ unsubscribeAuditorias(); unsubscribeAuditorias = null; }
+    AUDITORIAS = [];
+    shell.classList.add("hidden");
+    loginWrap.classList.remove("hidden");
+  }
+});
+
+document.getElementById("login-form").addEventListener("submit", e=>{
+  e.preventDefault();
+  const email = document.getElementById("login-email").value.trim();
+  const senha = document.getElementById("login-senha").value;
+  const errEl = document.getElementById("login-error");
+  const btn = document.getElementById("login-btn");
+  errEl.textContent = "";
+  btn.disabled = true; btn.textContent = "Entrando...";
+  auth.signInWithEmailAndPassword(email, senha)
+    .catch(err=>{
+      errEl.textContent = "E-mail ou senha inválidos.";
+      console.error(err);
+    })
+    .finally(()=>{
+      btn.disabled = false; btn.textContent = "Entrar";
+    });
+});
+
+document.getElementById("btn-logout").addEventListener("click", ()=>{
+  auth.signOut();
+});
+</script>
+</body>
+</html>
