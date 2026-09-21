@@ -219,8 +219,14 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
           <div style="position:relative;width:100%;height:230px"><canvas id="c-custo-folha"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">Custo de Turnover</div>
-          <div class="card-sub" style="font-style:italic">Estimativa CLT: aviso + 13º/férias prop. + multa FGTS, por desligamento · salário-base real de R$ 1.803 · assume 6 meses de casa (referência do setor)</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+            <div class="card-title">Custo de Turnover</div>
+            <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+              <button class="toggle-btn active" id="turn-cost-btn-total" onclick="setCustoTurnoverView('total')" style="padding:6px 12px;background:var(--brand-dark);color:#fff;border:none;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">Total</button>
+              <button class="toggle-btn" id="turn-cost-btn-cabeca" onclick="setCustoTurnoverView('cabeca')" style="padding:6px 12px;background:var(--white);color:var(--text-muted);border:none;border-left:1px solid var(--border);font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">Por Cabeça</button>
+            </div>
+          </div>
+          <div class="card-sub" style="font-style:italic" id="custo-turnover-sub">Estimativa CLT: aviso + 13º/férias prop. + multa FGTS, por desligamento · salário-base real de R$ 1.803 · assume 3 meses de casa (referência do setor)</div>
           <div style="position:relative;width:100%;height:210px"><canvas id="c-custo-turnover"></canvas></div>
         </div>
         <div class="card">
@@ -234,7 +240,7 @@ tr.total-row td{font-weight:800;background:var(--brand-light)}
         <table>
           <thead><tr>
             <th>Mês</th><th style="text-align:right">Bruto Ltda</th><th style="text-align:right">Bruto Estação</th>
-            <th style="text-align:right">Bruto Total</th><th style="text-align:right">Custo Turnover</th>
+            <th style="text-align:right">Bruto Total</th><th style="text-align:right" id="th-custo-turnover">Custo Turnover</th>
             <th style="text-align:right">Custo Absenteísmo</th>
           </tr></thead>
           <tbody id="tbl-custos"></tbody>
@@ -464,15 +470,32 @@ function renderHeadcount(){
   </tr>`).join('');
 }
 
+let custoTurnoverView='total';
+function setCustoTurnoverView(v){
+  custoTurnoverView=v;
+  document.getElementById('turn-cost-btn-total').style.background = v==='total'?'var(--brand-dark)':'var(--white)';
+  document.getElementById('turn-cost-btn-total').style.color = v==='total'?'#fff':'var(--text-muted)';
+  document.getElementById('turn-cost-btn-cabeca').style.background = v==='cabeca'?'var(--brand-dark)':'var(--white)';
+  document.getElementById('turn-cost-btn-cabeca').style.color = v==='cabeca'?'#fff':'var(--text-muted)';
+  renderCustos();
+}
 function renderCustos(){
   const last = DADOS[DADOS.length-1];
   const comAbs = DADOS.filter(d=>d.abs!=null && d.custoAbs!=null);
   const brutoAcum = DADOS.reduce((s,d)=>s+d.brutoTotal,0);
   const custoTurnoverAcum = DADOS.reduce((s,d)=>s+d.custoTurnover,0);
+  const custoPorCabecaMedio = DADOS.length? DADOS.reduce((s,d)=>s+d.custoPorCabeca,0)/DADOS.length : 0;
   const custoAbsAcum = comAbs.reduce((s,d)=>s+d.custoAbs,0);
+  const porCabeca = custoTurnoverView==='cabeca';
+
+  document.getElementById('custo-turnover-sub').textContent = porCabeca
+    ? 'Estimativa CLT por colaborador desligado: aviso + 13º/férias prop. + multa FGTS · salário-base real de R$ 1.803 · assume 3 meses de casa (referência do setor)'
+    : 'Estimativa CLT: aviso + 13º/férias prop. + multa FGTS, por desligamento · salário-base real de R$ 1.803 · assume 3 meses de casa (referência do setor)';
+  document.getElementById('th-custo-turnover').textContent = porCabeca ? 'Custo Turnover (por cabeça)' : 'Custo Turnover';
+
   document.getElementById('kpi-custos').innerHTML = `
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-report-money"></i></div><label>Folha Bruta Acumulada</label><div class="kpi-val">${fmtBRL(brutoAcum)}</div><div class="kpi-sub">${DADOS[0].mes}–${last.mes} · Ltda + Estação</div></div>
-    <div class="kpi"><div class="kpi-icon"><i class="ti ti-user-x"></i></div><label>Custo de Turnover Acumulado</label><div class="kpi-val">${fmtBRL(custoTurnoverAcum)}</div><div class="kpi-formula">aviso + 13º/férias prop. + multa FGTS · salário-base R$ 1.803 · assume 6 meses de casa (referência do setor)</div></div>
+    <div class="kpi"><div class="kpi-icon"><i class="ti ti-user-x"></i></div><label>${porCabeca?'Custo Médio por Desligamento':'Custo de Turnover Acumulado'}</label><div class="kpi-val">${fmtBRL(porCabeca?custoPorCabecaMedio:custoTurnoverAcum)}</div><div class="kpi-formula">aviso + 13º/férias prop. + multa FGTS · salário-base R$ 1.803 ${porCabeca?'· média por colaborador desligado':'por desligamento'} · assume 3 meses de casa (referência do setor)</div></div>
     <div class="kpi"><div class="kpi-icon"><i class="ti ti-calendar-off"></i></div><label>Custo de Absenteísmo Acumulado</label><div class="kpi-val">${comAbs.length? fmtBRL(custoAbsAcum) : '-'}</div><div class="kpi-formula">${comAbs.length? 'custo/hora × horas de ausência · soma de '+comAbs.length+' meses apurados' : 'sem relatório de absenteísmo'}</div></div>`;
 
   dc('custo-folha');
@@ -487,7 +510,7 @@ function renderCustos(){
 
   dc('custo-turnover');
   charts['custo-turnover']=new Chart(document.getElementById('c-custo-turnover'),{type:'bar',
-    data:{labels:DADOS.map(d=>d.mes),datasets:[{data:DADOS.map(d=>Math.round(d.custoTurnover)),backgroundColor:RUST,borderRadius:6}]},
+    data:{labels:DADOS.map(d=>d.mes),datasets:[{data:DADOS.map(d=>Math.round(porCabeca?d.custoPorCabeca:d.custoTurnover)),backgroundColor:RUST,borderRadius:6}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.raw)}}},
       scales:{y:{ticks:{callback:v=>'R$ '+Math.round(v/1000)+'k'},grid:{color:'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
   });
@@ -506,7 +529,7 @@ function renderCustos(){
     <td style="text-align:right">${fmtBRL(d.brutoLtda)}</td>
     <td style="text-align:right">${fmtBRL(d.brutoEstacao)}</td>
     <td style="text-align:right"><b>${fmtBRL(d.brutoTotal)}</b></td>
-    <td style="text-align:right">${fmtBRL(d.custoTurnover)}</td>
+    <td style="text-align:right">${fmtBRL(porCabeca?d.custoPorCabeca:d.custoTurnover)}</td>
     <td style="text-align:right">${d.custoAbs!=null? fmtBRL(d.custoAbs) : '<span class="tag-nd">À apurar</span>'}</td>
   </tr>`).join('');
 }
@@ -744,7 +767,7 @@ async function carregarDadosFirestore(){
   const snap=await clienteRef.collection('indicadores_mensais').get();
   const clienteDoc=await clienteRef.get();
   const SALARIO_BASE = (clienteDoc.exists && clienteDoc.data().salarioBase) || null;
-  const TEMPO_MEDIO_CASA_MESES = 6; // referência do setor, não é dado real da empresa
+  const TEMPO_MEDIO_CASA_MESES = 3; // referência do setor, não é dado real da empresa
 
   DADOS = snap.docs.map(d=>d.data())
     .sort((a,b)=> a.ano-b.ano || ordemMeses.indexOf(a.mes)-ordemMeses.indexOf(b.mes))
@@ -781,7 +804,7 @@ async function carregarDadosFirestore(){
         headcount: d.headcount,
         admissoes: d.admissoes||0,
         rescisoes: d.rescisoes||0,
-        brutoLtda, brutoEstacao, brutoTotal, custoTurnover, custoAbs
+        brutoLtda, brutoEstacao, brutoTotal, custoTurnover, custoPorCabeca: custoPorDesligamento, custoAbs
       };
     });
 
