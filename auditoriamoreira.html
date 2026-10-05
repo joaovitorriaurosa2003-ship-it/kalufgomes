@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F2D63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Auditoria Balcão">
+<title>Auditoria Balcão · Moreira e Filhos</title>
+<meta name="description" content="App de auditoria diária do balcão do Moreira e Filhos Supermercado: checklist por etapas, histórico e indicadores de conformidade.">
+<link rel="manifest" href="auditoria-moreira/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="auditoria-moreira/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="auditoria-moreira/icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="auditoria-moreira/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="auditoria-moreira/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Firebase (compat SDK, sem bundler) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --brown:#47448E; --brown-2:#5A57A6; --brown-3:#2F2D63; --brown-4:#1E1C45;
+  --gold:#AACC47; --gold-soft:#E6F0C4; --gold-2:#C4DC7A;
+  --cream:#F6F6FB; --paper:#FFFFFF; --paper-2:#F6F6FB; --line:#DEDDEE;
+  --ink:#1F1E3A; --ink-soft:#6A6985; --ink-faint:#9998B3;
+  --ok:#2E7D32; --ok-bg:#E5F3E6; --ok-line:#BFE1C2;
+  --warn:#B4740E; --warn-bg:#FBF0DC; --warn-line:#F0D9A6;
+  --crit:#B23A2E; --crit-bg:#FBE6E2; --crit-line:#F2C4BB;
+  --shadow-sm: 0 2px 10px -4px rgba(30,28,69,.18);
+  --shadow: 0 12px 30px -12px rgba(30,28,69,.28);
+  --shadow-lg: 0 22px 46px -18px rgba(30,28,69,.4);
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-xl:28px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --cream:#121128; --paper:#1C1B3B; --paper-2:#171634; --line:#33316A;
+    --ink:#EDEDF7; --ink-soft:#B5B4D3; --ink-faint:#7F7EA6;
+    --gold-soft:#3A3868;
+    --ok-bg:#152C1D; --ok-line:#1F4A2A; --warn-bg:#33260C; --warn-line:#4C3A12; --crit-bg:#34160F; --crit-line:#4E2018;
+    --shadow-sm: 0 2px 10px -4px rgba(0,0,0,.5);
+    --shadow: 0 12px 30px -12px rgba(0,0,0,.6);
+    --shadow-lg: 0 22px 46px -18px rgba(0,0,0,.7);
+  }
+  :root:not([data-theme="light"]) .kpi-card .kpi-value:not(.ok):not(.crit),
+  :root:not([data-theme="light"]) .nav-btn.active,
+  :root:not([data-theme="light"]) .btn-ghost,
+  :root:not([data-theme="light"]) .turno-toggle button.active,
+  :root:not([data-theme="light"]) .cat-check-row .go{color:var(--gold-2)}
+  :root:not([data-theme="light"]) .login-card .brand-mark{background:#fff; border-radius:14px; padding:6px}
+  :root:not([data-theme="light"]) .btn:not(.btn-ghost):not(.btn-gold){background:var(--brown-2)}
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0; background:var(--cream); color:var(--ink);
+  font-family:'Nunito',system-ui,sans-serif;
+  overscroll-behavior-y:none;
+}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif; letter-spacing:.2px; margin:0}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums}
+a{color:inherit}
+button{font-family:inherit; -webkit-appearance:none; appearance:none}
+input,select,textarea{font-family:inherit}
+.hidden{display:none !important}
+::selection{background:var(--gold-soft)}
+
+/* ---------- layout shell ---------- */
+.app-root{max-width:520px; margin:0 auto; min-height:100vh; min-height:100dvh; position:relative; background:var(--cream); box-shadow:0 0 60px rgba(0,0,0,.08)}
+
+/* ---------- login ---------- */
+.login-view{
+  min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center;
+  padding:28px 20px calc(28px + var(--safe-b));
+  background:
+    radial-gradient(560px 360px at 15% -10%, rgba(170,204,71,.35), transparent 60%),
+    radial-gradient(480px 320px at 110% 10%, rgba(90,87,166,.4), transparent 60%),
+    linear-gradient(160deg,var(--brown-3),var(--brown) 60%,var(--brown-2));
+  position:relative; overflow:hidden;
+}
+.login-view::before{
+  content:""; position:absolute; inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size:18px 18px; opacity:.5; pointer-events:none;
+}
+.login-card{
+  position:relative; background:var(--paper); border-radius:var(--r-xl); padding:36px 28px 28px;
+  width:100%; max-width:380px; box-shadow:var(--shadow-lg); text-align:center;
+  animation:cardIn .5s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes cardIn{from{opacity:0; transform:translateY(18px) scale(.98)} to{opacity:1; transform:none}}
+.login-card .brand-mark{height:96px; display:flex; align-items:center; justify-content:center; margin:0 auto 18px}
+.login-card .brand-mark img{height:100%; width:auto; max-width:100%; object-fit:contain}
+.login-card h2{font-size:21px; margin-bottom:4px}
+.login-card p.sub{color:var(--ink-soft); font-size:13.5px; margin:0 0 24px}
+.field{margin-bottom:14px; text-align:left}
+.field label{display:block; font-size:11.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px}
+.field input{
+  width:100%; border:1.5px solid var(--line); border-radius:12px; padding:13px 14px; font-size:15px;
+  background:var(--paper-2); color:var(--ink); transition:border-color .15s ease, box-shadow .15s ease;
+}
+.field input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 4px rgba(170,204,71,.22)}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  border:none; border-radius:14px; padding:14px 18px; font-weight:800; font-size:14.5px; cursor:pointer;
+  background:var(--brown); color:#fff; transition:transform .12s ease, box-shadow .15s ease, opacity .15s ease;
+  box-shadow:0 10px 22px -10px rgba(71,68,142,.6);
+}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.6; cursor:default; transform:none}
+.btn-block{width:100%}
+.btn-ghost{background:transparent; color:var(--brown); box-shadow:none; border:1.5px solid var(--line)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2)); color:var(--brown-3); box-shadow:0 10px 22px -10px rgba(170,204,71,.7)}
+.login-error{color:var(--crit); font-size:12.5px; font-weight:700; margin-top:12px; min-height:16px}
+.kg-credit{margin-top:24px; padding-top:18px; border-top:1px solid var(--line)}
+.kg-credit img{width:auto; max-width:110px; height:auto; border-radius:8px; box-shadow:0 4px 14px -6px rgba(0,0,0,.35); display:block; margin:0 auto}
+.kg-credit .kg-label{font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-faint); font-weight:800; margin-bottom:8px}
+
+/* ---------- app shell ---------- */
+.appbar{
+  position:sticky; top:0; z-index:30; padding:calc(14px + var(--safe-t)) 18px 14px;
+  background:linear-gradient(160deg,var(--brown-3),var(--brown));
+  color:#EDEDF7; display:flex; align-items:center; gap:12px;
+  box-shadow:0 8px 24px -14px rgba(0,0,0,.45);
+}
+.appbar .logo-mark{height:30px; flex:none; display:flex; align-items:center}
+.appbar .logo-mark img{height:100%; width:auto; object-fit:contain; border-radius:8px}
+.appbar .titles{flex:1; min-width:0}
+.appbar .titles .t1{font-family:'Fraunces',serif; font-size:16.5px; line-height:1.2}
+.appbar .titles .t2{font-size:11.5px; color:#D8C3A5; opacity:.9}
+.icon-btn{
+  width:38px; height:38px; border-radius:12px; border:none; background:rgba(255,255,255,.12);
+  color:#EDEDF7; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:background .15s ease, transform .12s ease;
+}
+.icon-btn:active{transform:scale(.92); background:rgba(255,255,255,.22)}
+.icon-btn svg{width:18px; height:18px}
+
+main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
+.view-fade{animation:viewFade .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes viewFade{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+
+/* ---------- bottom nav ---------- */
+.bottom-nav{
+  position:fixed; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:520px; z-index:40;
+  background:var(--paper); border-top:1px solid var(--line);
+  padding:8px 10px calc(10px + var(--safe-b));
+  box-shadow:0 -8px 24px -18px rgba(0,0,0,.35);
+}
+.bottom-nav-inner{display:flex; position:relative}
+.nav-btn{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px;
+  background:none; border:none; color:var(--ink-faint); cursor:pointer; border-radius:14px;
+  font-size:10.5px; font-weight:800; letter-spacing:.2px; transition:color .18s ease, transform .12s ease;
+}
+.nav-btn svg{width:22px; height:22px; transition:transform .18s cubic-bezier(.3,1.5,.5,1)}
+.nav-btn.active{color:var(--brown)}
+.nav-btn.active svg{transform:translateY(-2px) scale(1.08)}
+.nav-btn:active{transform:scale(.94)}
+
+/* ---------- cards / commons ---------- */
+.card{background:var(--paper); border:1px solid var(--line); border-radius:var(--r-lg); padding:18px; box-shadow:var(--shadow-sm)}
+.card + .card{margin-top:14px}
+.section-title{font-size:12px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--ink-soft); margin:22px 2px 10px}
+.section-title:first-child{margin-top:0}
+.hello{margin-bottom:4px}
+.hello .h1{font-size:22px}
+.hello .sub{color:var(--ink-soft); font-size:13.5px; margin-top:2px; text-transform:capitalize}
+
+.today-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.today-card{
+  border-radius:var(--r-lg); padding:16px; position:relative; overflow:hidden; cursor:pointer;
+  border:1.5px solid var(--line); background:var(--paper); transition:transform .15s ease, box-shadow .15s ease;
+}
+.today-card:active{transform:scale(.97)}
+.today-card .turno-label{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-soft); display:flex; align-items:center; gap:6px}
+.today-card .turno-label svg{width:14px; height:14px}
+.today-card .turno-status{margin-top:10px; font-family:'Fraunces',serif; font-size:19px}
+.today-card .turno-pct{font-size:12px; color:var(--ink-soft); margin-top:2px}
+.today-card.done{border-color:var(--ok-line); background:var(--ok-bg)}
+.today-card.done .turno-status{color:var(--ok)}
+.today-card.pending{border-style:dashed}
+.today-card.pending .turno-status{color:var(--ink-faint)}
+.today-card .go-arrow{position:absolute; right:14px; bottom:14px; opacity:.5}
+.today-card .go-arrow svg{width:16px; height:16px}
+
+.kpi-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.kpi-card{border-radius:var(--r-lg); padding:16px; background:var(--paper); border:1px solid var(--line); box-shadow:var(--shadow-sm)}
+.kpi-card .kpi-label{font-size:11px; font-weight:800; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px}
+.kpi-card .kpi-value{font-family:'Fraunces',serif; font-size:26px; margin-top:6px; color:var(--brown)}
+.kpi-card .kpi-value.ok{color:var(--ok)}
+.kpi-card .kpi-value.crit{color:var(--crit)}
+.kpi-card .kpi-sub{font-size:11.5px; color:var(--ink-faint); margin-top:2px}
+
+.chart-card{padding-bottom:8px}
+.chart-wrap{position:relative; height:170px; margin-top:6px}
+
+.rank-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line)}
+.rank-row:last-child{border-bottom:none}
+.rank-row .rank-idx{width:22px; height:22px; border-radius:50%; background:var(--gold-soft); color:var(--brown-3); font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:none}
+.rank-row .rank-name{flex:1; min-width:0; font-size:13.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rank-row .rank-meta{font-size:11.5px; color:var(--ink-soft)}
+.rank-row .rank-val{font-weight:800; font-size:13.5px}
+
+.empty-state{text-align:center; padding:34px 12px; color:var(--ink-soft)}
+.empty-state svg{width:44px; height:44px; margin-bottom:10px; opacity:.5}
+.empty-state .t{font-weight:800; color:var(--ink); font-size:14.5px; margin-bottom:4px}
+.empty-state .s{font-size:12.5px}
+
+/* ---------- wizard (nova auditoria) ---------- */
+.wizard-head{display:flex; align-items:center; gap:10px; margin-bottom:16px}
+.wizard-progress{flex:1; height:7px; border-radius:99px; background:var(--line); overflow:hidden}
+.wizard-progress-fill{height:100%; background:linear-gradient(90deg,var(--gold),var(--brown)); border-radius:99px; transition:width .35s cubic-bezier(.3,.8,.3,1)}
+.wizard-step-label{font-size:11.5px; font-weight:800; color:var(--ink-soft); white-space:nowrap}
+.wizard-title{font-size:19px; margin-bottom:2px}
+.wizard-sub{font-size:13px; color:var(--ink-soft); margin-bottom:18px}
+.wizard-content{min-height:38vh}
+
+.setup-grid{display:grid; gap:14px}
+.obs-card textarea{margin-top:8px}
+.foto-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.foto-th{position:relative; width:72px; height:72px}
+.foto-th img{width:100%; height:100%; object-fit:cover; border-radius:12px; border:1px solid var(--line); cursor:pointer}
+.foto-del{position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; border:none; background:var(--crit); color:#fff; font-size:15px; line-height:1; cursor:pointer}
+.foto-add{width:72px; height:72px; border-radius:12px; border:1.5px dashed var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11px; font-weight:800; color:var(--ink-soft); cursor:pointer}
+.foto-add svg{width:20px; height:20px}
+.detail-obs{margin-top:8px; padding:10px 12px; background:var(--paper-2); border-radius:12px; font-size:13px; color:var(--ink-soft); white-space:pre-wrap}
+.detail-time{margin-bottom:14px; font-size:13px; font-weight:700; color:var(--ink-soft)}
+.hub-list{display:grid; gap:12px}
+.hub-card{display:flex; align-items:center; gap:14px; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--paper); border:1.5px solid var(--line); border-radius:var(--r-lg); padding:16px; transition:transform .15s ease, box-shadow .15s ease}
+.hub-card:active{transform:scale(.98)}
+.hub-ico{flex:none; width:48px; height:48px; border-radius:14px; background:var(--gold-soft); color:var(--brown-3); display:flex; align-items:center; justify-content:center}
+.hub-ico svg{width:24px; height:24px}
+.hub-body{flex:1; min-width:0}
+.hub-name{font-family:'Fraunces',serif; font-size:18px}
+.hub-desc{font-size:12.5px; color:var(--ink-soft); margin-top:2px}
+.hub-meta{font-size:11.5px; color:var(--ink-faint); margin-top:6px}
+.hub-badge{display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:99px}
+.hub-badge svg{width:13px; height:13px}
+.hub-badge.done{background:var(--ok-bg); color:var(--ok); border:1px solid var(--ok-line)}
+.hub-badge.pending{background:var(--paper-2); color:var(--ink-soft); border:1px dashed var(--line)}
+.hub-go{flex:none; opacity:.5}
+.hub-go svg{width:18px; height:18px}
+.hub-chip{display:inline-flex; align-items:center; gap:8px; background:var(--gold-soft); color:var(--brown-3); border-radius:14px; padding:10px 14px; font-size:14px}
+.hub-chip svg{width:18px; height:18px}
+.turno-toggle{display:flex; gap:8px; background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:5px}
+.turno-toggle button{
+  flex:1; border:none; background:none; padding:11px 8px; border-radius:10px; font-weight:800; font-size:13.5px;
+  color:var(--ink-soft); cursor:pointer; transition:background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.turno-toggle button.active{background:var(--paper); color:var(--brown); box-shadow:var(--shadow-sm)}
+
+.item-card{border:1px solid var(--line); border-radius:var(--r-md); padding:14px 14px 12px; margin-bottom:12px; background:var(--paper); transition:border-color .2s ease}
+.item-card.answered{border-color:var(--gold)}
+.item-card .item-label{font-size:14.5px; font-weight:700; line-height:1.35; margin-bottom:10px}
+.item-card .item-crit{display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:800; color:var(--crit); text-transform:uppercase; letter-spacing:.3px; margin-bottom:8px}
+.item-card .item-crit svg{width:11px; height:11px}
+.pill-row{display:flex; flex-wrap:wrap; gap:8px}
+.pill{
+  border:1.5px solid var(--line); background:var(--paper-2); color:var(--ink); border-radius:99px; padding:9px 14px;
+  font-size:13px; font-weight:700; cursor:pointer; transition:all .15s ease; white-space:nowrap;
+}
+.pill:active{transform:scale(.95)}
+.pill.sel-ok{background:var(--ok-bg); border-color:var(--ok-line); color:var(--ok)}
+.pill.sel-warn{background:var(--warn-bg); border-color:var(--warn-line); color:var(--warn)}
+.pill.sel-crit{background:var(--crit-bg); border-color:var(--crit-line); color:var(--crit)}
+.item-card textarea{
+  width:100%; border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; font-size:13.5px;
+  background:var(--paper-2); color:var(--ink); resize:vertical; min-height:64px;
+}
+.item-card textarea:focus{outline:none; border-color:var(--gold)}
+.cat-progress{font-size:12px; color:var(--ink-soft); margin-bottom:14px; display:flex; align-items:center; gap:8px}
+.cat-progress .bar{flex:1; height:5px; background:var(--line); border-radius:99px; overflow:hidden}
+.cat-progress .bar i{display:block; height:100%; background:var(--gold); border-radius:99px; transition:width .25s ease}
+
+.review-gauge{display:flex; align-items:center; gap:16px; margin-bottom:6px}
+.gauge-ring{position:relative; width:84px; height:84px; flex:none}
+.gauge-ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+.gauge-ring .gauge-val{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:17px; font-weight:700}
+.review-status-label{font-weight:800; font-size:15px}
+.review-status-sub{font-size:12.5px; color:var(--ink-soft); margin-top:2px}
+.cat-check-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+.cat-check-row:last-child{border-bottom:none}
+.cat-check-row svg{width:16px; height:16px; flex:none}
+.cat-check-row.ok{color:var(--ink)}
+.cat-check-row.pending{color:var(--ink-faint)}
+.cat-check-row .go{margin-left:auto; font-size:11.5px; font-weight:800; color:var(--brown); cursor:pointer}
+
+.wizard-nav{display:flex; gap:10px; margin-top:20px}
+.wizard-nav .btn{flex:1}
+
+/* ---------- histórico ---------- */
+.filter-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{
+  flex:none; border:1.5px solid var(--line); background:var(--paper); color:var(--ink-soft); border-radius:99px;
+  padding:8px 13px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all .15s ease;
+  display:flex; align-items:center; gap:5px;
+}
+.chip.active{background:var(--brown); border-color:var(--brown); color:#fff}
+.chip select{background:transparent; border:none; color:inherit; font-weight:700; font-size:12.5px}
+.chip select:focus{outline:none}
+
+.hist-card{
+  display:flex; align-items:center; gap:12px; padding:13px 14px; border:1px solid var(--line); border-radius:var(--r-md);
+  background:var(--paper); margin-bottom:10px; cursor:pointer; transition:transform .12s ease, box-shadow .15s ease;
+}
+.hist-card:active{transform:scale(.98)}
+.hist-card .hc-date{flex:none; width:46px; text-align:center}
+.hist-card .hc-date .d{font-family:'Fraunces',serif; font-size:18px; line-height:1}
+.hist-card .hc-date .m{font-size:10px; text-transform:uppercase; color:var(--ink-soft); font-weight:800}
+.hist-card .hc-mid{flex:1; min-width:0}
+.hist-card .hc-mid .turno-tag{font-size:12px; font-weight:800; color:var(--ink-soft); display:flex; align-items:center; gap:5px}
+.hist-card .hc-mid .turno-tag svg{width:12px; height:12px}
+.hist-card .hc-mid .resp{font-size:13.5px; font-weight:700; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.badge{border-radius:99px; padding:5px 11px; font-size:12px; font-weight:800; flex:none}
+.badge.ok{background:var(--ok-bg); color:var(--ok)}
+.badge.warn{background:var(--warn-bg); color:var(--warn)}
+.badge.crit{background:var(--crit-bg); color:var(--crit)}
+
+/* ---------- bottom sheet ---------- */
+.sheet-backdrop{
+  position:fixed; inset:0; background:rgba(10,9,30,.45); z-index:60; opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+.sheet-backdrop.open{opacity:1; pointer-events:auto}
+.sheet{
+  position:fixed; left:50%; bottom:0; transform:translate(-50%,100%); width:100%; max-width:520px; z-index:61;
+  background:var(--paper); border-radius:24px 24px 0 0; max-height:86vh; display:flex; flex-direction:column;
+  box-shadow:0 -20px 50px -20px rgba(0,0,0,.5); transition:transform .32s cubic-bezier(.2,.9,.25,1);
+}
+.sheet.open{transform:translate(-50%,0)}
+.sheet-handle{width:40px; height:4px; background:var(--line); border-radius:99px; margin:10px auto 4px}
+.sheet-head{display:flex; align-items:center; gap:10px; padding:10px 18px 14px; border-bottom:1px solid var(--line)}
+.sheet-head .sh-title{flex:1; font-size:16px; font-weight:800}
+.sheet-body{padding:16px 18px calc(24px + var(--safe-b)); overflow-y:auto}
+.sheet-kpis{display:flex; gap:10px; margin-bottom:16px}
+.sheet-kpis .sk{flex:1; text-align:center; background:var(--paper-2); border-radius:14px; padding:12px 6px}
+.sheet-kpis .sk .v{font-family:'Fraunces',serif; font-size:19px}
+.sheet-kpis .sk .l{font-size:10px; text-transform:uppercase; letter-spacing:.3px; color:var(--ink-soft); font-weight:800; margin-top:2px}
+.detail-cat{margin-bottom:16px}
+.detail-cat h4{font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-soft); margin-bottom:8px}
+.detail-item{display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px}
+.detail-item:last-child{border-bottom:none}
+.detail-item .di-label{flex:1; color:var(--ink-soft)}
+.detail-item .di-val{font-weight:800; flex:none; text-align:right}
+.detail-item.crit-fail .di-val{color:var(--crit)}
+
+/* ---------- confirm dialog / toast ---------- */
+.toast{
+  position:fixed; left:50%; top:calc(14px + var(--safe-t)); transform:translate(-50%,-140%); z-index:80;
+  background:var(--brown-3); color:#EDEDF7; padding:12px 18px; border-radius:14px; font-size:13.5px; font-weight:700;
+  box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:9px; max-width:88%; transition:transform .35s cubic-bezier(.2,.9,.3,1);
+}
+.toast.show{transform:translate(-50%,0)}
+.toast.ok svg{color:#8fd39a}
+.toast.err svg{color:#f0a89c}
+.toast svg{width:17px; height:17px; flex:none}
+
+.confirm-backdrop{position:fixed; inset:0; background:rgba(10,9,30,.5); z-index:90; opacity:0; pointer-events:none; transition:opacity .2s ease; display:flex; align-items:center; justify-content:center; padding:24px}
+.confirm-backdrop.open{opacity:1; pointer-events:auto}
+.confirm-box{background:var(--paper); border-radius:var(--r-lg); padding:22px; width:100%; max-width:340px; text-align:center; transform:scale(.92); transition:transform .2s ease; box-shadow:var(--shadow-lg)}
+.confirm-backdrop.open .confirm-box{transform:scale(1)}
+.confirm-box h3{font-size:16.5px; margin-bottom:6px}
+.confirm-box p{font-size:13px; color:var(--ink-soft); margin:0 0 18px}
+.confirm-actions{display:flex; gap:10px}
+.confirm-actions .btn{flex:1}
+
+/* install card */
+.install-card{display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:var(--r-lg); margin-bottom:16px;
+  background:linear-gradient(135deg,var(--brown-3),var(--brown)); color:#EDEDF7; box-shadow:var(--shadow)}
+.install-card img{width:46px; height:46px; border-radius:12px; flex:none}
+.install-card .ic-txt{flex:1; min-width:0}
+.install-card .ic-t{font-weight:800; font-size:14px}
+.install-card .ic-s{font-size:12px; color:#D8C3A5; margin-top:2px}
+.install-card .btn{padding:10px 14px; font-size:13px; flex:none}
+.install-card .ic-close{background:none; border:none; color:#D8C3A5; padding:4px; cursor:pointer; flex:none}
+.install-card .ic-close svg{width:16px; height:16px}
+.warn-note{border:1px solid var(--warn-line); background:var(--warn-bg); color:var(--warn); border-radius:var(--r-md); padding:12px 14px; font-size:12.5px; font-weight:700; margin-top:14px; display:flex; gap:8px; align-items:flex-start}
+.warn-note svg{width:16px; height:16px; flex:none; margin-top:1px}
+
+/* success check animation */
+.success-tick{width:64px; height:64px; margin:0 auto 12px}
+.success-tick circle{fill:none; stroke:var(--ok); stroke-width:3; stroke-dasharray:166; stroke-dashoffset:166; animation:circleDraw .5s ease forwards}
+.success-tick path{fill:none; stroke:var(--ok); stroke-width:4; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:48; stroke-dashoffset:48; animation:tickDraw .35s .45s ease forwards}
+@keyframes circleDraw{to{stroke-dashoffset:0}}
+@keyframes tickDraw{to{stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login-view" class="login-view">
+  <div class="login-card">
+    <div class="brand-mark"><img src="auditoria-moreira/assets/logo-moreira.png" alt="Moreira e Filhos Supermercado"></div>
+    <h2>Auditoria de Balcão</h2>
+    <p class="sub">Moreira e Filhos · entre com o acesso da equipe</p>
+    <form id="login-form">
+      <div class="field">
+        <label>E-mail</label>
+        <input id="login-email" type="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="login-senha" type="password" autocomplete="current-password" required>
+      </div>
+      <button id="login-btn" type="submit" class="btn btn-block">Entrar</button>
+      <div id="login-error" class="login-error"></div>
+    </form>
+    <div class="kg-credit">
+      <div class="kg-label">Desenvolvido por</div>
+      <img src="auditoria-moreira/assets/logo-kaluf-gomes.jpg" alt="Kaluf & Gomes">
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app-root" class="app-root hidden">
+  <header class="appbar">
+    <div class="logo-mark"><img src="auditoria-moreira/icons/icon-192.png" alt=""></div>
+    <div class="titles">
+      <div class="t1" id="appbar-title">Auditoria Balcão</div>
+      <div class="t2" id="appbar-sub">Moreira e Filhos</div>
+    </div>
+    <button class="icon-btn" id="logout-btn" title="Sair" aria-label="Sair"></button>
+  </header>
+
+  <main id="view" class="view"></main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner" id="bottom-nav-inner"></div>
+  </nav>
+</div>
+
+<div id="sheet-backdrop" class="sheet-backdrop"></div>
+<div id="sheet-detail" class="sheet"></div>
+<div id="toast" class="toast"></div>
+<div id="confirm-backdrop" class="confirm-backdrop"></div>
+
+<script>
+/* =========================================================
+   ÍCONES (inline SVG, stroke-based, estilo feather)
+   ========================================================= */
+const ICO = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M12 9v6M9 12h6"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+  logout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  chevronLeft:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  chevronRight:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  checkCircle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/></svg>',
+  circle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.5 17a1.8 1.8 0 0 0 1.6 2.7h15.8a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0z"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0l-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16z"/></svg>',
+  filter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+  inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.6-7A2 2 0 0 1 7.5 3.5h9a2 2 0 0 1 1.9 1.5L20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z"/></svg>',
+};
+function esc(v){
+  return String(v==null?"":v).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function icon(name,cls){return `<span class="${cls||''}" style="display:inline-flex">${ICO[name]||''}</span>`}
+
+/* =========================================================
+   DADOS DO CHECKLIST (preservados do app anterior)
+   ========================================================= */
+const OPT = {
+  simnao:["Sim","Não"],
+  simnaoparcial:["Sim","Não","Parcial"],
+  simnaotalvez:["Sim","Não","Talvez"],
+  reposicao:["Foi Realizada","Não Foi Realizada"],
+  validade:["Sim","Não","Apenas a Validade","Não Foi Retirado Produtos Vencidos","Não Foi Visto a Data de Validade"],
+};
+const CATEGORIAS = ["Produtos e Validade","Limpeza e Organização","Operação e Insumos","Processos e Pessoas","Descarte e Lixo","Observações"];
+const CAT_ICON = {
+  "Produtos e Validade":"inbox","Limpeza e Organização":"sun","Operação e Insumos":"circle",
+  "Processos e Pessoas":"checkCircle","Descarte e Lixo":"trash","Observações":"alert"
+};
+const ITENS_MANHA = [
+  {id:"m01",cat:"Produtos e Validade",label:"Reposição dos produtos da gôndola",tipo:"opt",opts:OPT.reposicao,crit:false},
+  {id:"m02",cat:"Produtos e Validade",label:"Reposição da prateleira do pão de forma",tipo:"opt",opts:OPT.reposicao,crit:false},
+  {id:"m03",cat:"Produtos e Validade",label:"Verificada data de validade e retirada dos produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
+  {id:"m04",cat:"Produtos e Validade",label:"Todos os produtos com preço",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m05",cat:"Produtos e Validade",label:"Placas dos alimentos colocadas",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m06",cat:"Limpeza e Organização",label:"Vidros, geladeiras e vitrines foram limpos",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m07",cat:"Limpeza e Organização",label:"Vitrine de bebidas limpa e com datas dentro do prazo",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m08",cat:"Limpeza e Organização",label:"Vitrines de exposição limpas (Sobremesas, Roscas, Bolos, Frios, Leite, Laranja, Torta)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m09",cat:"Limpeza e Organização",label:"Câmara de resfriamento organizada",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m10",cat:"Limpeza e Organização",label:"Vitrine de salgados limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m11",cat:"Limpeza e Organização",label:"Setor salgado limpo, organizado e caixas repostas",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m12",cat:"Limpeza e Organização",label:"Balcões, chão e cadeiras limpos e organizados",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m13",cat:"Operação e Insumos",label:"Utensílios limpos (Liquidificador, Chapa, Máquina de café)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m14",cat:"Operação e Insumos",label:"Produtos sendo cobertos com o véu",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m15",cat:"Operação e Insumos",label:"Embalagens repostas e local limpo",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m16",cat:"Operação e Insumos",label:"Insumos do balcão repostos (Leite, Gelo, Frios, Saladas, Coca, Laranja, Ovos, Pães)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m17",cat:"Processos e Pessoas",label:"Encomendas anotadas e passadas corretamente",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m18",cat:"Processos e Pessoas",label:"Detergente e álcool repostos",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m19",cat:"Descarte e Lixo",label:"Lixos orgânico e inorgânico retirados",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m20",cat:"Descarte e Lixo",label:"Lixos sendo retirados e separação correta",tipo:"opt",opts:OPT.simnao,crit:false},
+];
+// Manhã e Tarde usam exatamente o mesmo checklist.
+const ITENS_TARDE = ITENS_MANHA;
+const CHECKLISTS = {"Manhã":ITENS_MANHA,"Tarde":ITENS_TARDE};
+const CONFORMES = new Set(["Sim","Foi Realizada"]);
+const PARCIAIS = new Set(["Parcial","Apenas a Validade","Talvez"]);
+
+const CHECKLIST_DEFS = [
+  {id:"Manhã", nome:"Balcão · Manhã", icone:"sun",  desc:"Abertura: validade, limpeza, insumos e organização do balcão."},
+  {id:"Tarde", nome:"Balcão · Tarde", icone:"moon", desc:"Fechamento: reposição, descarte, processos e observações do dia."},
+];
+function defChecklist(id){ return CHECKLIST_DEFS.find(d=>d.id===id) || CHECKLIST_DEFS[0]; }
+function itensDoTurno(turno){ return CHECKLISTS[turno] || ITENS_MANHA; }
+function itensDaAuditoria(a){ return itensDoTurno(a && a.turno); }
+function categoriasComItens(itens){ return CATEGORIAS.filter(c => itens.some(i=>i.cat===c)); }
+
+function calcConformidade(itens, respostas){
+  let pontos=0, total=0, criticosNao=0, faltando=[];
+  itens.forEach(it=>{
+    if(it.tipo==="texto") return;
+    const r = respostas[it.id];
+    if(r===undefined || r===null || r===""){ faltando.push(it.label); return; }
+    total++;
+    if(CONFORMES.has(r)) pontos+=1;
+    else if(PARCIAIS.has(r)) pontos+=0.5;
+    if(it.crit && !CONFORMES.has(r)) criticosNao++;
+  });
+  const pct = total ? Math.round((pontos/total)*1000)/10 : 0;
+  return {pct, criticosNao, faltando};
+}
+function statusFromPct(pct){
+  if(pct>=90) return {cls:"ok",label:"Conforme"};
+  if(pct>=70) return {cls:"warn",label:"Atenção"};
+  return {cls:"crit",label:"Crítico"};
+}
+function faltamObrigatorios(itens, respostas){
+  const faltando=[];
+  itens.forEach(it=>{
+    const r = respostas[it.id];
+    if(r===undefined || r===null || String(r).trim()==="") faltando.push(it.label);
+  });
+  return faltando;
+}
+
+/* =========================================================
+   HELPERS DE DATA
+   ========================================================= */
+function todayISO(){
+  const d=new Date(); const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function fmtDataLonga(iso){
+  try{
+    const [y,m,d]=iso.split("-").map(Number);
+    return new Date(y,m-1,d).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+  }catch(e){ return iso; }
+}
+function fmtDataCurta(iso){
+  try{
+    const [y,m,d]=iso.split("-").map(Number);
+    const dt=new Date(y,m-1,d);
+    return {d:String(d).padStart(2,"0"), m:dt.toLocaleDateString("pt-BR",{month:"short"}).replace(".","")};
+  }catch(e){ return {d:"--",m:"--"}; }
+}
+function fmtDataBR(iso){
+  if(!iso || typeof iso!=="string" || iso.split("-").length!==3) return esc(iso||"-");
+  const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`;
+}
+
+/* =========================================================
+   FIREBASE
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCg4g73OHOX0RB1gPQlC5doKMl2PyaDXqg",
+  authDomain: "auditorias-4e537.firebaseapp.com",
+  projectId: "auditorias-4e537",
+  storageBucket: "auditorias-4e537.firebasestorage.app",
+  messagingSenderId: "5798036717",
+  appId: "1:5798036717:web:05a9bad604d78be97378e4",
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let unsubAuditorias = null;
+
+/* =========================================================
+   ESTADO GLOBAL
+   ========================================================= */
+const STATE = {
+  tab: "inicio",
+  auditorias: [],
+  wizard: null,
+  hist: {turno:"todos", resp:"todos", soCriticos:false},
+  auditoriaAberta: null,
+};
+
+const MAX_FOTOS = 6;
+const MAX_FOTOS_CHARS = 720000; // mantém o documento abaixo do limite de 1 MB do Firestore
+function fmtHora(iso){
+  if(!iso) return "";
+  const d=new Date(iso);
+  return isNaN(d)? "" : d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+function duracaoMin(a,b){
+  const x=new Date(a), y=new Date(b);
+  if(isNaN(x)||isNaN(y)) return null;
+  return Math.max(0, Math.round((y-x)/60000));
+}
+function comprimirFoto(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      const max=900, k=Math.min(1, max/Math.max(img.width,img.height));
+      const c=document.createElement("canvas");
+      c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg",0.6));
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("imagem inválida")); };
+    img.src=url;
+  });
+}
+function abrirFoto(src){
+  const o=document.createElement("div");
+  o.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px";
+  const im=document.createElement("img");
+  im.src=src; im.style.cssText="max-width:100%;max-height:100%;border-radius:12px";
+  o.appendChild(im); o.addEventListener("click",()=>o.remove());
+  document.body.appendChild(o);
+}
+function novoWizard(turnoPreferido){
+  return {
+    turno: turnoPreferido || "Manhã",
+    data: todayISO(),
+    responsavel: "",
+    respostas: {},
+    obs: {},
+    fotos: [],
+    horaInicio: new Date().toISOString(),
+    step: 0,
+  };
+}
+
+/* =========================================================
+   TOAST / CONFIRM
+   ========================================================= */
+let toastTimer=null;
+function toast(msg, type){
+  const el=document.getElementById("toast");
+  el.className = "toast show " + (type||"ok");
+  el.innerHTML = (type==="err"? icon("alert") : icon("checkCircle")) + `<span>${msg}</span>`;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ el.classList.remove("show"); }, 2600);
+}
+function confirmDialog(title, msg, okLabel){
+  return new Promise(resolve=>{
+    const bd=document.getElementById("confirm-backdrop");
+    bd.innerHTML = `
+      <div class="confirm-box">
+        <h3>${title}</h3>
+        <p>${msg}</p>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" id="cf-cancel">Cancelar</button>
+          <button class="btn" style="background:var(--crit)" id="cf-ok">${okLabel||"Confirmar"}</button>
+        </div>
+      </div>`;
+    bd.classList.add("open");
+    const close=(v)=>{ bd.classList.remove("open"); setTimeout(()=>bd.innerHTML="",200); resolve(v); };
+    bd.querySelector("#cf-cancel").onclick=()=>close(false);
+    bd.querySelector("#cf-ok").onclick=()=>close(true);
+    bd.onclick=(ev)=>{ if(ev.target===bd) close(false); };
+  });
+}
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+document.getElementById("login-form").addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const email=document.getElementById("login-email").value.trim();
+  const senha=document.getElementById("login-senha").value;
+  const btn=document.getElementById("login-btn");
+  const errEl=document.getElementById("login-error");
+  errEl.textContent="";
+  btn.disabled=true; btn.textContent="Entrando...";
+  auth.signInWithEmailAndPassword(email, senha)
+    .catch(err=>{
+      const code = err && err.code || "";
+      errEl.textContent =
+        code==="auth/network-request-failed" ? "Sem conexão. Verifique a internet e tente de novo." :
+        code==="auth/too-many-requests" ? "Muitas tentativas. Aguarde alguns minutos." :
+        code==="auth/unauthorized-domain" ? "Este endereço não está autorizado no Firebase." :
+        "E-mail ou senha inválidos.";
+      console.error(err);
+    })
+    .finally(()=>{
+      btn.disabled=false; btn.textContent="Entrar";
+    });
+});
+document.getElementById("logout-btn").innerHTML = icon("logout");
+document.getElementById("logout-btn").addEventListener("click", ()=>{
+  if(unsubAuditorias){ unsubAuditorias(); unsubAuditorias=null; }
+  document.getElementById("login-senha").value="";
+  auth.signOut();
+});
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById("login-view").classList.add("hidden");
+    document.getElementById("app-root").classList.remove("hidden");
+    boot(user);
+  } else {
+    if(unsubAuditorias){ unsubAuditorias(); unsubAuditorias=null; }
+    STATE.auditorias=[]; STATE.wizard=null; STATE.tab="inicio";
+    STATE.hist={turno:"todos", resp:"todos", soCriticos:false};
+    fecharDetalhe(); destroyCharts();
+    document.getElementById("app-root").classList.add("hidden");
+    document.getElementById("login-view").classList.remove("hidden");
+  }
+});
+
+function boot(user){
+  document.getElementById("appbar-sub").textContent = user.email || "Moreira e Filhos";
+  renderBottomNav();
+  goTab("inicio");
+  subscribeAuditorias();
+}
+
+/* =========================================================
+   FIRESTORE: leitura / gravação
+   ========================================================= */
+function subscribeAuditorias(){
+  if(unsubAuditorias) unsubAuditorias();
+  unsubAuditorias = db.collection("auditorias_moreira").onSnapshot(snap=>{
+    STATE.auditorias = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(STATE.tab==="inicio" || STATE.tab==="historico") renderView();
+  }, err=>{
+    console.error(err);
+    toast("Não foi possível carregar os dados.", "err");
+  });
+}
+
+async function salvarAuditoriaFirestore(registro){
+  const docId = `${registro.data}_${registro.turno}`;
+  await db.collection("auditorias_moreira").doc(docId).set({
+    versao: 2,
+    horaInicio: registro.horaInicio || null,
+    horaFim: registro.horaFim || null,
+    obsEtapas: registro.obsEtapas || {},
+    fotos: registro.fotos || [],
+    data: registro.data,
+    turno: registro.turno,
+    responsavel: registro.responsavel,
+    respostas: registro.respostas,
+    pct: registro.pct,
+    criticosNao: registro.criticosNao,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+async function excluirAuditoriaFirestore(docId){
+  await db.collection("auditorias_moreira").doc(docId).delete();
+}
+
+/* =========================================================
+   BOTTOM NAV
+   ========================================================= */
+const TABS = [
+  {id:"inicio", label:"Início", ico:"home"},
+  {id:"nova", label:"Auditoria", ico:"plus"},
+  {id:"historico", label:"Histórico", ico:"clock"},
+];
+function renderBottomNav(){
+  const wrap=document.getElementById("bottom-nav-inner");
+  wrap.innerHTML = TABS.map(t=>`
+    <button class="nav-btn ${STATE.tab===t.id?'active':''}" data-tab="${t.id}">
+      ${icon(t.ico)}<span>${t.label}</span>
+    </button>`).join("");
+  wrap.querySelectorAll(".nav-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=> goTab(btn.dataset.tab));
+  });
+}
+function goTab(tabId){
+  STATE.tab = tabId;
+  
+  renderBottomNav();
+  renderView();
+}
+
+/* =========================================================
+   RENDER PRINCIPAL
+   ========================================================= */
+function renderView(){
+  const el=document.getElementById("view");
+  const titleEl=document.getElementById("appbar-title");
+  el.classList.remove("view-fade"); void el.offsetWidth; el.classList.add("view-fade");
+  if(STATE.tab==="inicio"){ titleEl.textContent="Auditoria Balcão"; renderInicio(el); }
+  else if(STATE.tab==="nova"){
+    if(STATE.wizard){ titleEl.textContent=defChecklist(STATE.wizard.turno).nome; renderWizard(el); }
+    else { titleEl.textContent="Auditorias"; renderHub(el); }
+  }
+  else if(STATE.tab==="historico"){ titleEl.textContent="Histórico"; renderHistorico(el); }
+}
+
+/* ---------- INÍCIO ---------- */
+function auditoriaDoTurnoHoje(turno){
+  const id = `${todayISO()}_${turno}`;
+  return STATE.auditorias.find(a=>a.id===id);
+}
+function animateCount(el, to, decimals){
+  const from=0, dur=650, t0=performance.now();
+  function step(t){
+    const p=Math.min(1,(t-t0)/dur);
+    const eased=1-Math.pow(1-p,3);
+    const val=from+(to-from)*eased;
+    el.textContent = decimals? val.toFixed(decimals) : Math.round(val);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+let chartEvol=null;
+function destroyCharts(){
+  if(chartEvol){ chartEvol.destroy(); chartEvol=null; }
+}
+
+function renderInicio(el){
+  destroyCharts();
+  const hoje = fmtDataLonga(todayISO());
+  const auManha = auditoriaDoTurnoHoje("Manhã");
+  const auTarde = auditoriaDoTurnoHoje("Tarde");
+
+  const total = STATE.auditorias.length;
+  const mediaP = total? Math.round((STATE.auditorias.reduce((s,a)=>s+(a.pct||0),0)/total)*10)/10 : 0;
+  const cem = STATE.auditorias.filter(a=>a.pct>=100).length;
+  const criticos = STATE.auditorias.reduce((s,a)=>s+(a.criticosNao||0),0);
+
+  function turnoCard(turno, au){
+    if(au){
+      const st=statusFromPct(au.pct);
+      return `<div class="today-card done" data-turno="${turno}">
+        <div class="turno-label">${icon(turno==="Manhã"?"sun":"moon")} ${turno}</div>
+        <div class="turno-status">Concluída</div>
+        <div class="turno-pct num">${Number(au.pct)||0}% · ${st.label}</div>
+      </div>`;
+    }
+    return `<div class="today-card pending" data-turno="${turno}">
+      <div class="turno-label">${icon(turno==="Manhã"?"sun":"moon")} ${turno}</div>
+      <div class="turno-status">Pendente</div>
+      <div class="turno-pct">Toque para iniciar</div>
+      <div class="go-arrow">${icon("chevronRight")}</div>
+    </div>`;
+  }
+
+  let rankResp="", rankItens="";
+  if(total){
+    const porResp={};
+    STATE.auditorias.forEach(a=>{
+      const r=a.responsavel||"-";
+      porResp[r]=porResp[r]||{n:0,soma:0,crit:0};
+      porResp[r].n++; porResp[r].soma+=(a.pct||0); porResp[r].crit+=(a.criticosNao||0);
+    });
+    const respArr=Object.entries(porResp).map(([nome,v])=>({nome,media:Math.round((v.soma/v.n)*10)/10,n:v.n,crit:v.crit}))
+      .sort((a,b)=>b.media-a.media).slice(0,3);
+    rankResp = respArr.map((r,i)=>`
+      <div class="rank-row">
+        <div class="rank-idx">${i+1}</div>
+        <div class="rank-name">${esc(r.nome)}</div>
+        <div class="rank-meta">${r.n} auditoria${r.n>1?'s':''}</div>
+        <div class="rank-val num">${r.media}%</div>
+      </div>`).join("");
+
+    const itemFalhas={};
+    STATE.auditorias.forEach(a=>{
+      const itens=itensDaAuditoria(a);
+      itens.forEach(it=>{
+        if(it.tipo==="texto") return;
+        const r=(a.respostas||{})[it.id];
+        if(r && !CONFORMES.has(r)){ itemFalhas[it.label]=(itemFalhas[it.label]||0)+1; }
+      });
+    });
+    const itensArr=Object.entries(itemFalhas).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    rankItens = itensArr.map(([label,n],i)=>`
+      <div class="rank-row">
+        <div class="rank-idx">${i+1}</div>
+        <div class="rank-name">${esc(label)}</div>
+        <div class="rank-val num" style="color:var(--crit)">${n}x</div>
+      </div>`).join("");
+  }
+
+  el.innerHTML = `
+    ${installCardHtml()}
+    <div class="hello">
+      <div class="h1">Olá! 👋</div>
+      <div class="sub">${hoje}</div>
+    </div>
+
+    <div class="section-title">Auditoria de hoje</div>
+    <div class="today-grid">
+      ${turnoCard("Manhã", auManha)}
+      ${turnoCard("Tarde", auTarde)}
+    </div>
+
+    <div class="section-title">Indicadores gerais</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Auditorias</div><div class="kpi-value num" id="kv-total">0</div><div class="kpi-sub">registradas ao todo</div></div>
+      <div class="kpi-card"><div class="kpi-label">Conformidade média</div><div class="kpi-value num ok" id="kv-media">0</div><div class="kpi-sub">% em todas as auditorias</div></div>
+      <div class="kpi-card"><div class="kpi-label">100% conformes</div><div class="kpi-value num" id="kv-cem">0</div><div class="kpi-sub">auditorias perfeitas</div></div>
+      <div class="kpi-card"><div class="kpi-label">Críticos reprovados</div><div class="kpi-value num crit" id="kv-crit">0</div><div class="kpi-sub">itens críticos no total</div></div>
+    </div>
+
+    ${total? `
+    <div class="section-title">Evolução</div>
+    <div class="card chart-card">
+      <div class="chart-wrap"><canvas id="chart-evol"></canvas></div>
+    </div>
+
+    <div class="section-title">Por responsável</div>
+    <div class="card">${rankResp || '<div class="empty-state"><div class="s">Sem dados suficientes ainda.</div></div>'}</div>
+
+    <div class="section-title">Itens mais reprovados</div>
+    <div class="card">${rankItens || '<div class="empty-state"><div class="s">Nenhum item crítico reprovado ainda. 🎉</div></div>'}</div>
+    ` : `
+    <div class="card empty-state">
+      ${icon("inbox")}
+      <div class="t">Nenhuma auditoria ainda</div>
+      <div class="s">Toque em um dos turnos acima para começar a primeira auditoria de hoje.</div>
+    </div>
+    `}
+  `;
+
+  bindInstallCard(el);
+  animateCount(document.getElementById("kv-total"), total);
+  animateCount(document.getElementById("kv-media"), mediaP, 1);
+  animateCount(document.getElementById("kv-cem"), cem);
+  animateCount(document.getElementById("kv-crit"), criticos);
+
+  el.querySelectorAll(".today-card").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      const turno=card.dataset.turno;
+      const au = auditoriaDoTurnoHoje(turno);
+      if(au){ abrirDetalhe(au); return; }
+      STATE.wizard = novoWizard(turno);
+      goTab("nova");
+    });
+  });
+
+  if(total){
+    const ordenadas=STATE.auditorias.filter(a=>a.data && a.turno).sort((a,b)=> (a.data+a.turno).localeCompare(b.data+b.turno)).slice(-14);
+    const ctx=document.getElementById("chart-evol");
+    chartEvol = new Chart(ctx, {
+      type:"line",
+      data:{
+        labels: ordenadas.map(a=>{
+          const [,m,d]=a.data.split("-"); return `${d}/${m}·${a.turno[0]}`;
+        }),
+        datasets:[{
+          data: ordenadas.map(a=>a.pct),
+          borderColor:"#AACC47", backgroundColor:"rgba(170,204,71,.18)",
+          fill:true, tension:.35, pointRadius:3, pointBackgroundColor:"#47448E",
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          y:{min:0,max:100,ticks:{callback:v=>v+"%",font:{size:10}}, grid:{color:"rgba(106,105,133,.12)"}},
+          x:{ticks:{font:{size:9}}, grid:{display:false}}
+        }
+      }
+    });
+  }
+}
+
+/* ---------- WIZARD: NOVA AUDITORIA ---------- */
+function wizardSteps(){
+  const itens = itensDoTurno(STATE.wizard.turno);
+  const cats = categoriasComItens(itens);
+  return [{type:"setup"}, ...cats.map(c=>({type:"cat", cat:c})), {type:"review"}];
+}
+
+function renderHub(el){
+  destroyCharts();
+  const cards = CHECKLIST_DEFS.map(d=>{
+    const itens = itensDoTurno(d.id);
+    const cats = categoriasComItens(itens).length;
+    const au = auditoriaDoTurnoHoje(d.id);
+    let status;
+    if(au){
+      const st=statusFromPct(au.pct);
+      status = `<span class="hub-badge done">${icon("checkCircle")} Hoje: ${Number(au.pct)||0}% · ${st.label}</span>`;
+    } else {
+      status = `<span class="hub-badge pending">Pendente hoje</span>`;
+    }
+    return `<button type="button" class="hub-card" data-check="${d.id}">
+      <div class="hub-ico">${icon(d.icone)}</div>
+      <div class="hub-body">
+        <div class="hub-name">${d.nome}</div>
+        <div class="hub-desc">${d.desc}</div>
+        <div class="hub-meta num">${itens.length} itens · ${cats} etapas</div>
+        ${status}
+      </div>
+      <div class="hub-go">${icon("chevronRight")}</div>
+    </button>`;
+  }).join("");
+  el.innerHTML = `
+    <h2 class="wizard-title">Checklists de auditoria</h2>
+    <p class="wizard-sub">Escolha qual checklist você vai aplicar agora.</p>
+    <div class="hub-list">${cards}</div>`;
+  el.querySelectorAll(".hub-card").forEach(c=>{
+    c.addEventListener("click", ()=>{
+      const id=c.dataset.check;
+      const au=auditoriaDoTurnoHoje(id);
+      if(au){
+        confirmDialog("Já existe auditoria de hoje", `${defChecklist(id).nome} já foi registrada hoje. Deseja abrir o resultado?`, "Abrir resultado")
+          .then(ok=>{ if(ok) abrirDetalhe(au); });
+        return;
+      }
+      STATE.wizard = novoWizard(id);
+      renderView();
+    });
+  });
+}
+
+function renderWizard(el){
+  if(!STATE.wizard){ renderHub(el); return; }
+  const w = STATE.wizard;
+  const steps = wizardSteps();
+  if(w.step >= steps.length) w.step = steps.length-1;
+  const step = steps[w.step];
+  const pct = steps.length>1 ? (w.step/(steps.length-1))*100 : 0;
+
+  let stepLabel = `${w.step+1} / ${steps.length}`;
+  let body = "";
+
+  if(step.type==="setup"){
+    body = renderStepSetup();
+  } else if(step.type==="cat"){
+    body = renderStepCategoria(step.cat);
+  } else if(step.type==="review"){
+    body = renderStepRevisao();
+  }
+
+  el.innerHTML = `
+    <div class="wizard-head">
+      <button class="icon-btn" id="wz-close" style="background:var(--gold-soft); color:var(--brown-3)">${icon("x")}</button>
+      <div class="wizard-progress"><div class="wizard-progress-fill" style="width:${pct}%"></div></div>
+      <div class="wizard-step-label num">${stepLabel}</div>
+    </div>
+    <div class="wizard-content view-fade">${body}</div>
+  `;
+
+  document.getElementById("wz-close").addEventListener("click", async ()=>{
+    const temDados = Object.keys(w.respostas).length>0;
+    if(temDados){
+      const ok = await confirmDialog("Sair do checklist?", "As respostas já preenchidas serão descartadas.", "Descartar");
+      if(!ok) return;
+    }
+    STATE.wizard=null; renderBottomNav(); renderView();
+  });
+  bindStepEvents(step);
+}
+
+function renderStepSetup(){
+  const w=STATE.wizard;
+  return `
+    <h2 class="wizard-title">Vamos começar</h2>
+    <p class="wizard-sub">Confirme a data e quem está auditando.</p>
+    <div class="setup-grid">
+      <div>
+        <div class="hub-chip">${icon(defChecklist(w.turno).icone)} <b>${defChecklist(w.turno).nome}</b></div>
+      </div>
+      <div class="field" style="margin:0">
+        <label>Data</label>
+        <input type="date" id="wz-data" value="${w.data}">
+      </div>
+      <div class="field" style="margin:0">
+        <label>Responsável pela auditoria</label>
+        <input type="text" id="wz-resp" placeholder="Seu nome" value="${esc(w.responsavel)}">
+      </div>
+    </div>
+    <div class="wizard-nav">
+      <button class="btn btn-block" id="wz-next">Começar checklist ${icon('chevronRight')}</button>
+    </div>
+  `;
+}
+
+function renderStepCategoria(cat){
+  const w=STATE.wizard;
+  const itens = itensDoTurno(w.turno).filter(i=>i.cat===cat);
+  const respondidos = itens.filter(i=> w.respostas[i.id]!==undefined && String(w.respostas[i.id]).trim()!=="").length;
+  const catIco = CAT_ICON[cat] || "circle";
+
+  const itemsHtml = itens.map(it=>{
+    const val = w.respostas[it.id];
+    const answered = val!==undefined && String(val).trim()!=="";
+    if(it.tipo==="texto"){
+      return `
+      <div class="item-card ${answered?'answered':''}">
+        <div class="item-label">${it.label}</div>
+        <textarea data-id="${it.id}" placeholder="Escreva aqui...">${esc(val)}</textarea>
+      </div>`;
+    }
+    const pills = it.opts.map(o=>{
+      let cls="pill";
+      if(val===o){
+        cls += CONFORMES.has(o) ? " sel-ok" : PARCIAIS.has(o) ? " sel-warn" : " sel-crit";
+      }
+      return `<button type="button" class="${cls}" data-id="${it.id}" data-val="${o}">${o}</button>`;
+    }).join("");
+    return `
+    <div class="item-card ${answered?'answered':''}">
+      ${it.crit? `<div class="item-crit">${icon('alert')} Item crítico</div>` : ""}
+      <div class="item-label">${it.label}</div>
+      <div class="pill-row">${pills}</div>
+    </div>`;
+  }).join("");
+
+  return `
+    <h2 class="wizard-title">${cat}</h2>
+    <div class="cat-progress">
+      <span>${icon(catIco)}</span>
+      <div class="bar"><i style="width:${itens.length? (respondidos/itens.length*100):0}%"></i></div>
+      <span class="num">${respondidos}/${itens.length}</span>
+    </div>
+    ${itemsHtml}
+    <div class="item-card obs-card">
+      <div class="item-label">Observações desta etapa <span style="font-weight:600; color:var(--ink-faint)">(opcional)</span></div>
+      <textarea data-obs="${cat}" placeholder="Anote o que chamou atenção...">${esc((w.obs||{})[cat])}</textarea>
+      <div class="foto-row">
+        ${(w.fotos||[]).map((f,i)=> f.cat===cat? `<div class="foto-th"><img src="${f.src}" data-foto="${i}" alt="Foto"><button type="button" class="foto-del" data-del="${i}" aria-label="Remover foto">&times;</button></div>` : "").join("")}
+        <label class="foto-add">${icon('plus')}<span>Foto</span><input type="file" accept="image/*" id="wz-foto" hidden></label>
+      </div>
+    </div>
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
+      <button class="btn" id="wz-next">Próximo ${icon('chevronRight')}</button>
+    </div>
+  `;
+}
+
+function renderStepRevisao(){
+  const w=STATE.wizard;
+  const itens=itensDoTurno(w.turno);
+  const cats=categoriasComItens(itens);
+  const {pct, criticosNao} = calcConformidade(itens, w.respostas);
+  const faltando = faltamObrigatorios(itens, w.respostas);
+  const st = statusFromPct(pct);
+  const circ = 2*Math.PI*36;
+  const dash = circ - (pct/100)*circ;
+  const color = st.cls==="ok"? "var(--ok)" : st.cls==="warn"? "var(--warn)" : "var(--crit)";
+
+  const rows = cats.map(cat=>{
+    const catItens = itens.filter(i=>i.cat===cat);
+    const catFalt = catItens.filter(i=>{ const v=w.respostas[i.id]; return v===undefined || String(v).trim()===""; });
+    const ok = catFalt.length===0;
+    return `<div class="cat-check-row ${ok?'ok':'pending'}">
+      ${ok? icon('checkCircle') : icon('circle')}
+      <span>${cat}</span>
+      <span class="go" data-cat="${cat}">${ok? 'revisar' : `${catFalt.length} pendente${catFalt.length>1?'s':''}`}</span>
+    </div>`;
+  }).join("");
+
+  return `
+    <h2 class="wizard-title">Revisão final</h2>
+    <p class="wizard-sub">Confira o resultado antes de salvar.</p>
+    <div class="card">
+      <div class="review-gauge">
+        <div class="gauge-ring">
+          <svg viewBox="0 0 84 84">
+            <circle cx="42" cy="42" r="36" fill="none" stroke="var(--line)" stroke-width="7"/>
+            <circle cx="42" cy="42" r="36" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round"
+              stroke-dasharray="${circ}" stroke-dashoffset="${dash}"/>
+          </svg>
+          <div class="gauge-val num">${pct}%</div>
+        </div>
+        <div>
+          <div class="review-status-label" style="color:${color}">${st.label}</div>
+          <div class="review-status-sub">${criticosNao} ${criticosNao===1?'item crítico reprovado':'itens críticos reprovados'}</div>
+          <div class="review-status-sub num">${w.turno} · ${fmtDataBR(w.data)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="section-title">Checklist por categoria</div>
+    <div class="card">${rows}</div>
+    ${faltando.length? `
+    <div class="card" style="border-color:var(--crit-line); background:var(--crit-bg)">
+      <div style="font-weight:800; color:var(--crit); font-size:13px; margin-bottom:6px">${icon('alert')} Faltam ${faltando.length} resposta${faltando.length>1?'s':''}</div>
+      <div style="font-size:12.5px; color:var(--ink-soft)">Volte nas categorias marcadas acima para concluir antes de salvar.</div>
+    </div>` : ""}
+    ${STATE.auditorias.some(a=>a.id===`${w.data}_${w.turno}`)? `
+    <div class="warn-note">${icon('alert')}<span>Já existe uma auditoria de ${w.turno} em ${fmtDataBR(w.data)}. Ao salvar, ela será substituída por esta.</span></div>` : ""}
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
+      <button class="btn btn-gold" id="wz-save" ${faltando.length?'disabled':''}>${icon('check')} Salvar auditoria</button>
+    </div>
+  `;
+}
+
+function goStep(n){
+  STATE.wizard.step=n;
+  renderWizard(document.getElementById("view"));
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function bindStepEvents(step){
+  const w=STATE.wizard;
+  const steps=wizardSteps();
+
+  if(step.type==="setup"){
+    document.getElementById("wz-data").addEventListener("change", e=> w.data=e.target.value);
+    document.getElementById("wz-resp").addEventListener("input", e=> w.responsavel=e.target.value);
+    document.getElementById("wz-next").addEventListener("click", ()=>{
+      if(!w.data){
+        toast("Informe a data da auditoria.", "err");
+        return;
+      }
+      if(!w.responsavel || !w.responsavel.trim()){
+        toast("Informe o nome de quem está auditando.", "err");
+        document.getElementById("wz-resp").focus();
+        return;
+      }
+      goStep(w.step+1);
+    });
+  }
+
+  if(step.type==="cat"){
+    const refreshCatProgress=()=>{
+      const itens=itensDoTurno(w.turno).filter(i=>i.cat===step.cat);
+      const n=itens.filter(i=>{ const v=w.respostas[i.id]; return v!==undefined && String(v).trim()!==""; }).length;
+      const bar=document.querySelector(".cat-progress .bar i");
+      const lbl=document.querySelector(".cat-progress .num");
+      if(bar) bar.style.width=(itens.length? n/itens.length*100 : 0)+"%";
+      if(lbl) lbl.textContent=`${n}/${itens.length}`;
+    };
+    document.querySelectorAll(".pill[data-id]").forEach(p=>{
+      p.addEventListener("click", ()=>{
+        const val=p.dataset.val;
+        w.respostas[p.dataset.id]=val;
+        const card=p.closest(".item-card");
+        card.querySelectorAll(".pill").forEach(x=>x.classList.remove("sel-ok","sel-warn","sel-crit"));
+        p.classList.add(CONFORMES.has(val)?"sel-ok":PARCIAIS.has(val)?"sel-warn":"sel-crit");
+        card.classList.add("answered");
+        refreshCatProgress();
+      });
+    });
+    document.querySelectorAll("textarea[data-id]").forEach(ta=>{
+      ta.addEventListener("input", ()=>{
+        w.respostas[ta.dataset.id]=ta.value;
+        ta.closest(".item-card").classList.toggle("answered", ta.value.trim()!=="");
+        refreshCatProgress();
+      });
+    });
+    document.querySelector("textarea[data-obs]").addEventListener("input", e=>{ (w.obs=w.obs||{})[step.cat]=e.target.value; });
+    const rerender=()=>{ const y=window.scrollY; renderWizard(document.getElementById("view")); window.scrollTo(0,y); };
+    document.querySelectorAll("img[data-foto]").forEach(im=> im.addEventListener("click", ()=> abrirFoto(im.src)));
+    document.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=>{ w.fotos.splice(Number(b.dataset.del),1); rerender(); }));
+    document.getElementById("wz-foto").addEventListener("change", async e=>{
+      const f=e.target.files[0]; if(!f) return;
+      if(w.fotos.length>=MAX_FOTOS){ toast(`Limite de ${MAX_FOTOS} fotos por auditoria.`, "err"); return; }
+      try{
+        const src=await comprimirFoto(f);
+        const total=w.fotos.reduce((n,x)=>n+x.src.length,0)+src.length;
+        if(total>MAX_FOTOS_CHARS){ toast("Fotos demais para esta auditoria. Remova alguma.", "err"); return; }
+        w.fotos.push({cat:step.cat, src}); rerender();
+      }catch(err){ toast("Não foi possível usar essa foto.", "err"); }
+    });
+    document.getElementById("wz-back").addEventListener("click", ()=> goStep(w.step-1));
+    document.getElementById("wz-next").addEventListener("click", ()=> goStep(w.step+1));
+  }
+
+  if(step.type==="review"){
+    document.getElementById("wz-back").addEventListener("click", ()=> goStep(w.step-1));
+    document.querySelectorAll(".go[data-cat]").forEach(g=>{
+      g.addEventListener("click", ()=>{
+        const idx = steps.findIndex(s=>s.type==="cat" && s.cat===g.dataset.cat);
+        if(idx>=0) goStep(idx);
+      });
+    });
+    const saveBtn=document.getElementById("wz-save");
+    if(saveBtn){
+      saveBtn.addEventListener("click", async ()=>{
+        saveBtn.disabled=true; saveBtn.textContent="Salvando...";
+        try{
+          const itens=itensDoTurno(w.turno);
+          const {pct, criticosNao} = calcConformidade(itens, w.respostas);
+          const respostasFinal = {...w.respostas, __resp: w.responsavel.trim()};
+          await salvarAuditoriaFirestore({
+            data:w.data, turno:w.turno, responsavel:w.responsavel.trim(),
+            respostas:respostasFinal, pct, criticosNao,
+            horaInicio:w.horaInicio, horaFim:new Date().toISOString(),
+            obsEtapas:Object.fromEntries(Object.entries(w.obs||{}).filter(([,v])=>String(v).trim())),
+            fotos:w.fotos||[],
+          });
+          mostrarSucesso(pct);
+        }catch(err){
+          console.error(err);
+          toast("Erro ao salvar. Verifique sua conexão.", "err");
+          saveBtn.disabled=false; saveBtn.innerHTML = icon('check')+' Salvar auditoria';
+        }
+      });
+    }
+  }
+}
+
+function mostrarSucesso(pct){
+  STATE.wizard=null;
+  const el=document.getElementById("view");
+  el.innerHTML = `
+    <div class="view-fade" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:0 20px">
+      <svg class="success-tick" viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-15"/></svg>
+      <h2 style="font-size:20px; margin-bottom:6px">Auditoria salva!</h2>
+      <p style="color:var(--ink-soft); font-size:14px; margin:0 0 22px">Conformidade registrada: <strong class="num">${pct}%</strong></p>
+      <button class="btn btn-block" id="ok-voltar" style="max-width:260px">Voltar ao início</button>
+    </div>`;
+  document.getElementById("ok-voltar").addEventListener("click", ()=> goTab("inicio"));
+  toast("Auditoria registrada com sucesso.");
+}
+
+/* ---------- HISTÓRICO ---------- */
+function renderHistorico(el){
+  const responsaveis = [...new Set(STATE.auditorias.map(a=>a.responsavel).filter(Boolean))].sort();
+  if(STATE.hist.resp!=="todos" && !responsaveis.includes(STATE.hist.resp)) STATE.hist.resp="todos";
+  let lista = [...STATE.auditorias];
+  if(STATE.hist.turno!=="todos") lista = lista.filter(a=>a.turno===STATE.hist.turno);
+  if(STATE.hist.resp!=="todos") lista = lista.filter(a=>a.responsavel===STATE.hist.resp);
+  if(STATE.hist.soCriticos) lista = lista.filter(a=>(a.criticosNao||0)>0);
+  const chave=a=>`${a.data||""}_${a.turno||""}`;
+  lista.sort((a,b)=> chave(b).localeCompare(chave(a)));
+
+  el.innerHTML = `
+    <div class="filter-row">
+      <button class="chip ${STATE.hist.turno==='todos'?'active':''}" data-f="turno" data-v="todos">Todos</button>
+      <button class="chip ${STATE.hist.turno==='Manhã'?'active':''}" data-f="turno" data-v="Manhã">${icon('sun')} Manhã</button>
+      <button class="chip ${STATE.hist.turno==='Tarde'?'active':''}" data-f="turno" data-v="Tarde">${icon('moon')} Tarde</button>
+      <button class="chip ${STATE.hist.soCriticos?'active':''}" id="chip-crit">${icon('alert')} Críticos</button>
+      <div class="chip">
+        <select id="sel-resp">
+          <option value="todos">Todos responsáveis</option>
+          ${responsaveis.map(r=>`<option value="${esc(r)}" ${STATE.hist.resp===r?'selected':''}>${esc(r)}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    ${lista.length? lista.map(a=>{
+      const st=statusFromPct(a.pct);
+      const dt=fmtDataCurta(a.data);
+      return `
+      <div class="hist-card" data-id="${esc(a.id)}">
+        <div class="hc-date"><div class="d">${dt.d}</div><div class="m">${dt.m}</div></div>
+        <div class="hc-mid">
+          <div class="turno-tag">${icon(a.turno==='Manhã'?'sun':'moon')} ${esc(a.turno)}</div>
+          <div class="resp">${esc(a.responsavel||'-')}</div>
+        </div>
+        <div class="badge ${st.cls}">${Number(a.pct)||0}%</div>
+      </div>`;
+    }).join("") : `
+    <div class="card empty-state">
+      ${icon('inbox')}
+      <div class="t">Nada por aqui</div>
+      <div class="s">Nenhuma auditoria encontrada com esses filtros.</div>
+    </div>`}
+  `;
+
+  el.querySelectorAll(".chip[data-f]").forEach(c=>{
+    c.addEventListener("click", ()=>{ STATE.hist.turno=c.dataset.v; renderView(); });
+  });
+  const critChip=document.getElementById("chip-crit");
+  if(critChip) critChip.addEventListener("click", ()=>{ STATE.hist.soCriticos=!STATE.hist.soCriticos; renderView(); });
+  const selResp=document.getElementById("sel-resp");
+  if(selResp) selResp.addEventListener("change", e=>{ STATE.hist.resp=e.target.value; renderView(); });
+
+  el.querySelectorAll(".hist-card").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      const au = STATE.auditorias.find(a=>a.id===card.dataset.id);
+      if(au) abrirDetalhe(au);
+    });
+  });
+}
+
+/* ---------- SHEET DE DETALHE ---------- */
+function abrirDetalhe(au){
+  STATE.auditoriaAberta = au;
+  const itens = itensDaAuditoria(au);
+  const cats = categoriasComItens(itens);
+  const st = statusFromPct(au.pct);
+
+  const catsHtml = cats.map(cat=>{
+    const catItens = itens.filter(i=>i.cat===cat);
+    const rows = catItens.map(it=>{
+      const val=(au.respostas||{})[it.id];
+      const fail = it.tipo!=="texto" && it.crit && val && !CONFORMES.has(val);
+      return `<div class="detail-item ${fail?'crit-fail':''}">
+        <div class="di-label">${it.label}${fail? ' '+icon('alert'):''}</div>
+        <div class="di-val">${esc(val || '-')}</div>
+      </div>`;
+    }).join("");
+    const ob=((au.obsEtapas||{})[cat]||"").trim();
+    const fts=(Array.isArray(au.fotos)?au.fotos:[]).filter(f=>f&&f.cat===cat&&typeof f.src==="string"&&f.src.startsWith("data:image/"));
+    const extra=(ob? `<div class="detail-obs">${esc(ob)}</div>`:"") +
+      (fts.length? `<div class="foto-row">${fts.map(f=>`<div class="foto-th"><img src="${f.src}" data-open alt="Foto"></div>`).join("")}</div>`:"");
+    return `<div class="detail-cat"><h4>${cat}</h4>${rows}${extra}</div>`;
+  }).join("");
+  const hi=fmtHora(au.horaInicio), hf=fmtHora(au.horaFim), dur=duracaoMin(au.horaInicio,au.horaFim);
+  const tempoHtml = hi? `<div class="detail-time">${icon('clock')} Início ${hi}${hf? ` · Fim ${hf}`:""}${dur!==null? ` · ${dur} min`:""}</div>` : "";
+
+  const sheet=document.getElementById("sheet-detail");
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sh-title">${esc(au.turno)} · ${fmtDataBR(au.data)}</div>
+      <button class="icon-btn" id="sheet-close" style="background:var(--gold-soft); color:var(--brown-3)">${icon('x')}</button>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-kpis">
+        <div class="sk"><div class="v num" style="color:${st.cls==='ok'?'var(--ok)':st.cls==='warn'?'var(--warn)':'var(--crit)'}">${Number(au.pct)||0}%</div><div class="l">Conformidade</div></div>
+        <div class="sk"><div class="v num">${Number(au.criticosNao)||0}</div><div class="l">Críticos</div></div>
+        <div class="sk"><div class="v" style="font-size:14px">${esc(au.responsavel||'-')}</div><div class="l">Responsável</div></div>
+      </div>
+      ${tempoHtml}
+      ${catsHtml}
+      <button class="btn btn-block" style="background:var(--crit); margin-top:6px" id="btn-excluir">${icon('trash')} Excluir esta auditoria</button>
+    </div>
+  `;
+  document.getElementById("sheet-backdrop").classList.add("open");
+  requestAnimationFrame(()=> sheet.classList.add("open"));
+
+  sheet.querySelectorAll("img[data-open]").forEach(im=> im.addEventListener("click", ()=> abrirFoto(im.src)));
+  document.getElementById("sheet-close").addEventListener("click", fecharDetalhe);
+  document.getElementById("sheet-backdrop").onclick = fecharDetalhe;
+  document.getElementById("btn-excluir").addEventListener("click", async ()=>{
+    const ok = await confirmDialog("Excluir auditoria?", "Essa ação não pode ser desfeita.", "Excluir");
+    if(!ok) return;
+    try{
+      await excluirAuditoriaFirestore(au.id);
+      toast("Auditoria excluída.");
+      fecharDetalhe();
+    }catch(err){
+      console.error(err);
+      toast("Erro ao excluir.", "err");
+    }
+  });
+}
+function fecharDetalhe(){
+  document.getElementById("sheet-detail").classList.remove("open");
+  document.getElementById("sheet-backdrop").classList.remove("open");
+}
+
+/* =========================================================
+   PWA: instalar app (Chrome/Android) + dica no iPhone
+   ========================================================= */
+let deferredInstall=null;
+const isStandalone = ()=> window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+const isIOS = ()=> /iphone|ipad|ipod/i.test(navigator.userAgent);
+function installDismissed(){ try{ return localStorage.getItem("installDismissed")==="1"; }catch(e){ return false; } }
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredInstall=e;
+  if(STATE.tab==="inicio" && !document.getElementById("app-root").classList.contains("hidden")) renderView();
+});
+window.addEventListener("appinstalled", ()=>{
+  deferredInstall=null;
+  toast("App instalado! Procure o ícone na tela inicial.");
+  if(STATE.tab==="inicio") renderView();
+});
+function installCardHtml(){
+  if(isStandalone() || installDismissed()) return "";
+  if(deferredInstall){
+    return `<div class="install-card" id="install-card">
+      <img src="auditoria-moreira/icons/icon-192.png" alt="">
+      <div class="ic-txt"><div class="ic-t">Instale o app no celular</div><div class="ic-s">Abre direto da tela inicial, como um aplicativo.</div></div>
+      <button class="btn btn-gold" id="install-btn">Instalar</button>
+      <button class="ic-close" id="install-close" aria-label="Dispensar">${ICO.x}</button>
+    </div>`;
+  }
+  if(isIOS()){
+    return `<div class="install-card" id="install-card">
+      <img src="auditoria-moreira/icons/icon-192.png" alt="">
+      <div class="ic-txt"><div class="ic-t">Instale no iPhone</div><div class="ic-s">No Safari, toque em Compartilhar e depois em "Adicionar à Tela de Início".</div></div>
+      <button class="ic-close" id="install-close" aria-label="Dispensar">${ICO.x}</button>
+    </div>`;
+  }
+  return "";
+}
+function bindInstallCard(root){
+  const btn=root.querySelector("#install-btn");
+  if(btn) btn.addEventListener("click", async ()=>{
+    if(!deferredInstall) return;
+    deferredInstall.prompt();
+    try{ await deferredInstall.userChoice; }catch(e){}
+    deferredInstall=null;
+    renderView();
+  });
+  const close=root.querySelector("#install-close");
+  if(close) close.addEventListener("click", ()=>{
+    try{ localStorage.setItem("installDismissed","1"); }catch(e){}
+    const card=root.querySelector("#install-card"); if(card) card.remove();
+  });
+}
+
+/* =========================================================
+   PWA: registra o service worker
+   ========================================================= */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw-auditoriamoreira.js", {scope:"./auditoriamoreira.html"}).catch(err => console.error("SW falhou:", err));
+  });
+}
+</script>
+</body>
+</html>
