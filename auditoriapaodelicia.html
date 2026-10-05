@@ -7,12 +7,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Auditoria Balcão">
-<title>Auditoria Balcão — Pão Delícia</title>
-<meta name="description" content="App de auditoria diária do balcão da Pão Delícia — checklist por etapas, histórico e indicadores de conformidade.">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Auditoria Balcão · Pão Delícia</title>
+<meta name="description" content="App de auditoria diária do balcão da Pão Delícia: checklist por etapas, histórico e indicadores de conformidade.">
+<link rel="manifest" href="auditoria-pd/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="auditoria-pd/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="auditoria-pd/icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="auditoria-pd/icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="auditoria-pd/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -47,6 +48,13 @@
     --shadow: 0 12px 30px -12px rgba(0,0,0,.6);
     --shadow-lg: 0 22px 46px -18px rgba(0,0,0,.7);
   }
+  :root:not([data-theme="light"]) .kpi-card .kpi-value:not(.ok):not(.crit),
+  :root:not([data-theme="light"]) .nav-btn.active,
+  :root:not([data-theme="light"]) .btn-ghost,
+  :root:not([data-theme="light"]) .turno-toggle button.active,
+  :root:not([data-theme="light"]) .cat-check-row .go{color:var(--gold-2)}
+  :root:not([data-theme="light"]) .login-card .brand-mark img{filter:brightness(0) invert(.9) sepia(.35)}
+  :root:not([data-theme="light"]) .btn:not(.btn-ghost):not(.btn-gold){background:var(--brown-2)}
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
@@ -337,6 +345,19 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
 .confirm-actions{display:flex; gap:10px}
 .confirm-actions .btn{flex:1}
 
+/* install card */
+.install-card{display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:var(--r-lg); margin-bottom:16px;
+  background:linear-gradient(135deg,var(--brown-3),var(--brown)); color:#F3E7D6; box-shadow:var(--shadow)}
+.install-card img{width:46px; height:46px; border-radius:12px; flex:none}
+.install-card .ic-txt{flex:1; min-width:0}
+.install-card .ic-t{font-weight:800; font-size:14px}
+.install-card .ic-s{font-size:12px; color:#D8C3A5; margin-top:2px}
+.install-card .btn{padding:10px 14px; font-size:13px; flex:none}
+.install-card .ic-close{background:none; border:none; color:#D8C3A5; padding:4px; cursor:pointer; flex:none}
+.install-card .ic-close svg{width:16px; height:16px}
+.warn-note{border:1px solid var(--warn-line); background:var(--warn-bg); color:var(--warn); border-radius:var(--r-md); padding:12px 14px; font-size:12.5px; font-weight:700; margin-top:14px; display:flex; gap:8px; align-items:flex-start}
+.warn-note svg{width:16px; height:16px; flex:none; margin-top:1px}
+
 /* success check animation */
 .success-tick{width:64px; height:64px; margin:0 auto 12px}
 .success-tick circle{fill:none; stroke:var(--ok); stroke-width:3; stroke-dasharray:166; stroke-dashoffset:166; animation:circleDraw .5s ease forwards}
@@ -350,7 +371,7 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
 <!-- ================= LOGIN ================= -->
 <div id="login-view" class="login-view">
   <div class="login-card">
-    <div class="brand-mark"><img src="assets/logo-pao-delicia.png" alt="Pão Delícia"></div>
+    <div class="brand-mark"><img src="auditoria-pd/assets/logo-pao-delicia.png" alt="Pão Delícia"></div>
     <h2>Auditoria de Balcão</h2>
     <p class="sub">Pão Delícia · entre com o acesso da equipe</p>
     <form id="login-form">
@@ -367,7 +388,7 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
     </form>
     <div class="kg-credit">
       <div class="kg-label">Desenvolvido por</div>
-      <img src="assets/logo-kaluf-gomes.jpg" alt="Kaluf & Gomes">
+      <img src="auditoria-pd/assets/logo-kaluf-gomes.jpg" alt="Kaluf & Gomes">
     </div>
   </div>
 </div>
@@ -375,7 +396,7 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
 <!-- ================= APP ================= -->
 <div id="app-root" class="app-root hidden">
   <header class="appbar">
-    <div class="logo-mark"><img src="assets/logo-pao-delicia.png" alt=""></div>
+    <div class="logo-mark"><img src="auditoria-pd/assets/logo-pao-delicia.png" alt=""></div>
     <div class="titles">
       <div class="t1" id="appbar-title">Auditoria Balcão</div>
       <div class="t2" id="appbar-sub">Pão Delícia</div>
@@ -417,6 +438,9 @@ const ICO = {
   filter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
   inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2 3h4l2-3h4"/><path d="M4 12l1.6-7A2 2 0 0 1 7.5 3.5h9a2 2 0 0 1 1.9 1.5L20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6z"/></svg>',
 };
+function esc(v){
+  return String(v==null?"":v).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
 function icon(name,cls){return `<span class="${cls||''}" style="display:inline-flex">${ICO[name]||''}</span>`}
 
 /* =========================================================
@@ -547,6 +571,7 @@ function fmtDataCurta(iso){
   }catch(e){ return {d:"--",m:"--"}; }
 }
 function fmtDataBR(iso){
+  if(!iso || typeof iso!=="string" || iso.split("-").length!==3) return esc(iso||"-");
   const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`;
 }
 
@@ -614,6 +639,7 @@ function confirmDialog(title, msg, okLabel){
     const close=(v)=>{ bd.classList.remove("open"); setTimeout(()=>bd.innerHTML="",200); resolve(v); };
     bd.querySelector("#cf-cancel").onclick=()=>close(false);
     bd.querySelector("#cf-ok").onclick=()=>close(true);
+    bd.onclick=(ev)=>{ if(ev.target===bd) close(false); };
   });
 }
 
@@ -630,7 +656,12 @@ document.getElementById("login-form").addEventListener("submit", (e)=>{
   btn.disabled=true; btn.textContent="Entrando...";
   auth.signInWithEmailAndPassword(email, senha)
     .catch(err=>{
-      errEl.textContent = "E-mail ou senha inválidos.";
+      const code = err && err.code || "";
+      errEl.textContent =
+        code==="auth/network-request-failed" ? "Sem conexão. Verifique a internet e tente de novo." :
+        code==="auth/too-many-requests" ? "Muitas tentativas. Aguarde alguns minutos." :
+        code==="auth/unauthorized-domain" ? "Este endereço não está autorizado no Firebase." :
+        "E-mail ou senha inválidos.";
       console.error(err);
     })
     .finally(()=>{
@@ -638,7 +669,11 @@ document.getElementById("login-form").addEventListener("submit", (e)=>{
     });
 });
 document.getElementById("logout-btn").innerHTML = icon("logout");
-document.getElementById("logout-btn").addEventListener("click", ()=> auth.signOut());
+document.getElementById("logout-btn").addEventListener("click", ()=>{
+  if(unsubAuditorias){ unsubAuditorias(); unsubAuditorias=null; }
+  document.getElementById("login-senha").value="";
+  auth.signOut();
+});
 
 auth.onAuthStateChanged(user=>{
   if(user){
@@ -648,6 +683,8 @@ auth.onAuthStateChanged(user=>{
   } else {
     if(unsubAuditorias){ unsubAuditorias(); unsubAuditorias=null; }
     STATE.auditorias=[]; STATE.wizard=null; STATE.tab="inicio";
+    STATE.hist={turno:"todos", resp:"todos", soCriticos:false};
+    fecharDetalhe(); destroyCharts();
     document.getElementById("app-root").classList.add("hidden");
     document.getElementById("login-view").classList.remove("hidden");
   }
@@ -684,7 +721,7 @@ async function salvarAuditoriaFirestore(registro){
     pct: registro.pct,
     criticosNao: registro.criticosNao,
     criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-  }, {merge:true});
+  });
 }
 async function excluirAuditoriaFirestore(docId){
   await db.collection("auditorias").doc(docId).delete();
@@ -766,7 +803,7 @@ function renderInicio(el){
       return `<div class="today-card done" data-turno="${turno}">
         <div class="turno-label">${icon(turno==="Manhã"?"sun":"moon")} ${turno}</div>
         <div class="turno-status">Concluída</div>
-        <div class="turno-pct num">${au.pct}% · ${st.label}</div>
+        <div class="turno-pct num">${Number(au.pct)||0}% · ${st.label}</div>
       </div>`;
     }
     return `<div class="today-card pending" data-turno="${turno}">
@@ -781,7 +818,7 @@ function renderInicio(el){
   if(total){
     const porResp={};
     STATE.auditorias.forEach(a=>{
-      const r=a.responsavel||"—";
+      const r=a.responsavel||"-";
       porResp[r]=porResp[r]||{n:0,soma:0,crit:0};
       porResp[r].n++; porResp[r].soma+=(a.pct||0); porResp[r].crit+=(a.criticosNao||0);
     });
@@ -790,7 +827,7 @@ function renderInicio(el){
     rankResp = respArr.map((r,i)=>`
       <div class="rank-row">
         <div class="rank-idx">${i+1}</div>
-        <div class="rank-name">${r.nome}</div>
+        <div class="rank-name">${esc(r.nome)}</div>
         <div class="rank-meta">${r.n} auditoria${r.n>1?'s':''}</div>
         <div class="rank-val num">${r.media}%</div>
       </div>`).join("");
@@ -808,12 +845,13 @@ function renderInicio(el){
     rankItens = itensArr.map(([label,n],i)=>`
       <div class="rank-row">
         <div class="rank-idx">${i+1}</div>
-        <div class="rank-name">${label}</div>
+        <div class="rank-name">${esc(label)}</div>
         <div class="rank-val num" style="color:var(--crit)">${n}x</div>
       </div>`).join("");
   }
 
   el.innerHTML = `
+    ${installCardHtml()}
     <div class="hello">
       <div class="h1">Olá! 👋</div>
       <div class="sub">${hoje}</div>
@@ -853,6 +891,7 @@ function renderInicio(el){
     `}
   `;
 
+  bindInstallCard(el);
   animateCount(document.getElementById("kv-total"), total);
   animateCount(document.getElementById("kv-media"), mediaP, 1);
   animateCount(document.getElementById("kv-cem"), cem);
@@ -869,7 +908,7 @@ function renderInicio(el){
   });
 
   if(total){
-    const ordenadas=[...STATE.auditorias].sort((a,b)=> (a.data+a.turno).localeCompare(b.data+b.turno)).slice(-14);
+    const ordenadas=STATE.auditorias.filter(a=>a.data && a.turno).sort((a,b)=> (a.data+a.turno).localeCompare(b.data+b.turno)).slice(-14);
     const ctx=document.getElementById("chart-evol");
     chartEvol = new Chart(ctx, {
       type:"line",
@@ -953,7 +992,7 @@ function renderStepSetup(){
       </div>
       <div class="field" style="margin:0">
         <label>Responsável pela auditoria</label>
-        <input type="text" id="wz-resp" placeholder="Seu nome" value="${w.responsavel||''}">
+        <input type="text" id="wz-resp" placeholder="Seu nome" value="${esc(w.responsavel)}">
       </div>
     </div>
     <div class="wizard-nav">
@@ -975,7 +1014,7 @@ function renderStepCategoria(cat){
       return `
       <div class="item-card ${answered?'answered':''}">
         <div class="item-label">${it.label}</div>
-        <textarea data-id="${it.id}" placeholder="Escreva aqui...">${val||''}</textarea>
+        <textarea data-id="${it.id}" placeholder="Escreva aqui...">${esc(val)}</textarea>
       </div>`;
     }
     const pills = it.opts.map(o=>{
@@ -1037,15 +1076,15 @@ function renderStepRevisao(){
       <div class="review-gauge">
         <div class="gauge-ring">
           <svg viewBox="0 0 84 84">
-            <circle cx="42" cy="42" r="36" stroke="var(--line)" stroke-width="7"/>
-            <circle cx="42" cy="42" r="36" stroke="${color}" stroke-width="7" stroke-linecap="round"
+            <circle cx="42" cy="42" r="36" fill="none" stroke="var(--line)" stroke-width="7"/>
+            <circle cx="42" cy="42" r="36" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round"
               stroke-dasharray="${circ}" stroke-dashoffset="${dash}"/>
           </svg>
           <div class="gauge-val num">${pct}%</div>
         </div>
         <div>
           <div class="review-status-label" style="color:${color}">${st.label}</div>
-          <div class="review-status-sub">${criticosNao} item${criticosNao!==1?'s':''} crítico${criticosNao!==1?'s':''} reprovado${criticosNao!==1?'s':''}</div>
+          <div class="review-status-sub">${criticosNao} ${criticosNao===1?'item crítico reprovado':'itens críticos reprovados'}</div>
           <div class="review-status-sub num">${w.turno} · ${fmtDataBR(w.data)}</div>
         </div>
       </div>
@@ -1057,11 +1096,19 @@ function renderStepRevisao(){
       <div style="font-weight:800; color:var(--crit); font-size:13px; margin-bottom:6px">${icon('alert')} Faltam ${faltando.length} resposta${faltando.length>1?'s':''}</div>
       <div style="font-size:12.5px; color:var(--ink-soft)">Volte nas categorias marcadas acima para concluir antes de salvar.</div>
     </div>` : ""}
+    ${STATE.auditorias.some(a=>a.id===`${w.data}_${w.turno}`)? `
+    <div class="warn-note">${icon('alert')}<span>Já existe uma auditoria de ${w.turno} em ${fmtDataBR(w.data)}. Ao salvar, ela será substituída por esta.</span></div>` : ""}
     <div class="wizard-nav">
       <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
       <button class="btn btn-gold" id="wz-save" ${faltando.length?'disabled':''}>${icon('check')} Salvar auditoria</button>
     </div>
   `;
+}
+
+function goStep(n){
+  STATE.wizard.step=n;
+  renderWizard(document.getElementById("view"));
+  window.scrollTo({top:0, behavior:"smooth"});
 }
 
 function bindStepEvents(step){
@@ -1080,36 +1127,56 @@ function bindStepEvents(step){
     document.getElementById("wz-data").addEventListener("change", e=> w.data=e.target.value);
     document.getElementById("wz-resp").addEventListener("input", e=> w.responsavel=e.target.value);
     document.getElementById("wz-next").addEventListener("click", ()=>{
+      if(!w.data){
+        toast("Informe a data da auditoria.", "err");
+        return;
+      }
       if(!w.responsavel || !w.responsavel.trim()){
         toast("Informe o nome de quem está auditando.", "err");
         document.getElementById("wz-resp").focus();
         return;
       }
-      w.step++; renderWizard(document.getElementById("view"));
+      goStep(w.step+1);
     });
   }
 
   if(step.type==="cat"){
+    const refreshCatProgress=()=>{
+      const itens=itensDoTurno(w.turno).filter(i=>i.cat===step.cat);
+      const n=itens.filter(i=>{ const v=w.respostas[i.id]; return v!==undefined && String(v).trim()!==""; }).length;
+      const bar=document.querySelector(".cat-progress .bar i");
+      const lbl=document.querySelector(".cat-progress .num");
+      if(bar) bar.style.width=(itens.length? n/itens.length*100 : 0)+"%";
+      if(lbl) lbl.textContent=`${n}/${itens.length}`;
+    };
     document.querySelectorAll(".pill[data-id]").forEach(p=>{
       p.addEventListener("click", ()=>{
-        w.respostas[p.dataset.id]=p.dataset.val;
-        renderWizard(document.getElementById("view"));
+        const val=p.dataset.val;
+        w.respostas[p.dataset.id]=val;
+        const card=p.closest(".item-card");
+        card.querySelectorAll(".pill").forEach(x=>x.classList.remove("sel-ok","sel-warn","sel-crit"));
+        p.classList.add(CONFORMES.has(val)?"sel-ok":PARCIAIS.has(val)?"sel-warn":"sel-crit");
+        card.classList.add("answered");
+        refreshCatProgress();
       });
     });
     document.querySelectorAll("textarea[data-id]").forEach(ta=>{
-      ta.addEventListener("input", ()=>{ w.respostas[ta.dataset.id]=ta.value; });
-      ta.addEventListener("blur", ()=>{ renderWizard(document.getElementById("view")); });
+      ta.addEventListener("input", ()=>{
+        w.respostas[ta.dataset.id]=ta.value;
+        ta.closest(".item-card").classList.toggle("answered", ta.value.trim()!=="");
+        refreshCatProgress();
+      });
     });
-    document.getElementById("wz-back").addEventListener("click", ()=>{ w.step--; renderWizard(document.getElementById("view")); });
-    document.getElementById("wz-next").addEventListener("click", ()=>{ w.step++; renderWizard(document.getElementById("view")); });
+    document.getElementById("wz-back").addEventListener("click", ()=> goStep(w.step-1));
+    document.getElementById("wz-next").addEventListener("click", ()=> goStep(w.step+1));
   }
 
   if(step.type==="review"){
-    document.getElementById("wz-back").addEventListener("click", ()=>{ w.step--; renderWizard(document.getElementById("view")); });
+    document.getElementById("wz-back").addEventListener("click", ()=> goStep(w.step-1));
     document.querySelectorAll(".go[data-cat]").forEach(g=>{
       g.addEventListener("click", ()=>{
         const idx = steps.findIndex(s=>s.type==="cat" && s.cat===g.dataset.cat);
-        if(idx>=0){ w.step=idx; renderWizard(document.getElementById("view")); }
+        if(idx>=0) goStep(idx);
       });
     });
     const saveBtn=document.getElementById("wz-save");
@@ -1136,6 +1203,7 @@ function bindStepEvents(step){
 }
 
 function mostrarSucesso(pct){
+  STATE.wizard=null;
   const el=document.getElementById("view");
   el.innerHTML = `
     <div class="view-fade" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:0 20px">
@@ -1144,21 +1212,20 @@ function mostrarSucesso(pct){
       <p style="color:var(--ink-soft); font-size:14px; margin:0 0 22px">Conformidade registrada: <strong class="num">${pct}%</strong></p>
       <button class="btn btn-block" id="ok-voltar" style="max-width:260px">Voltar ao início</button>
     </div>`;
-  document.getElementById("ok-voltar").addEventListener("click", ()=>{
-    STATE.wizard=null;
-    goTab("inicio");
-  });
+  document.getElementById("ok-voltar").addEventListener("click", ()=> goTab("inicio"));
   toast("Auditoria registrada com sucesso.");
 }
 
 /* ---------- HISTÓRICO ---------- */
 function renderHistorico(el){
   const responsaveis = [...new Set(STATE.auditorias.map(a=>a.responsavel).filter(Boolean))].sort();
+  if(STATE.hist.resp!=="todos" && !responsaveis.includes(STATE.hist.resp)) STATE.hist.resp="todos";
   let lista = [...STATE.auditorias];
   if(STATE.hist.turno!=="todos") lista = lista.filter(a=>a.turno===STATE.hist.turno);
   if(STATE.hist.resp!=="todos") lista = lista.filter(a=>a.responsavel===STATE.hist.resp);
   if(STATE.hist.soCriticos) lista = lista.filter(a=>(a.criticosNao||0)>0);
-  lista.sort((a,b)=> (b.data+b.turno).localeCompare(a.data+a.turno));
+  const chave=a=>`${a.data||""}_${a.turno||""}`;
+  lista.sort((a,b)=> chave(b).localeCompare(chave(a)));
 
   el.innerHTML = `
     <div class="filter-row">
@@ -1169,7 +1236,7 @@ function renderHistorico(el){
       <div class="chip">
         <select id="sel-resp">
           <option value="todos">Todos responsáveis</option>
-          ${responsaveis.map(r=>`<option value="${r}" ${STATE.hist.resp===r?'selected':''}>${r}</option>`).join("")}
+          ${responsaveis.map(r=>`<option value="${esc(r)}" ${STATE.hist.resp===r?'selected':''}>${esc(r)}</option>`).join("")}
         </select>
       </div>
     </div>
@@ -1177,13 +1244,13 @@ function renderHistorico(el){
       const st=statusFromPct(a.pct);
       const dt=fmtDataCurta(a.data);
       return `
-      <div class="hist-card" data-id="${a.id}">
+      <div class="hist-card" data-id="${esc(a.id)}">
         <div class="hc-date"><div class="d">${dt.d}</div><div class="m">${dt.m}</div></div>
         <div class="hc-mid">
-          <div class="turno-tag">${icon(a.turno==='Manhã'?'sun':'moon')} ${a.turno}</div>
-          <div class="resp">${a.responsavel||'—'}</div>
+          <div class="turno-tag">${icon(a.turno==='Manhã'?'sun':'moon')} ${esc(a.turno)}</div>
+          <div class="resp">${esc(a.responsavel||'-')}</div>
         </div>
-        <div class="badge ${st.cls}">${a.pct}%</div>
+        <div class="badge ${st.cls}">${Number(a.pct)||0}%</div>
       </div>`;
     }).join("") : `
     <div class="card empty-state">
@@ -1223,7 +1290,7 @@ function abrirDetalhe(au){
       const fail = it.tipo!=="texto" && it.crit && val && !CONFORMES.has(val);
       return `<div class="detail-item ${fail?'crit-fail':''}">
         <div class="di-label">${it.label}${fail? ' '+icon('alert'):''}</div>
-        <div class="di-val">${val || '—'}</div>
+        <div class="di-val">${esc(val || '-')}</div>
       </div>`;
     }).join("");
     return `<div class="detail-cat"><h4>${cat}</h4>${rows}</div>`;
@@ -1233,14 +1300,14 @@ function abrirDetalhe(au){
   sheet.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div class="sh-title">${au.turno} · ${fmtDataBR(au.data)}</div>
+      <div class="sh-title">${esc(au.turno)} · ${fmtDataBR(au.data)}</div>
       <button class="icon-btn" id="sheet-close" style="background:var(--gold-soft); color:var(--brown-3)">${icon('x')}</button>
     </div>
     <div class="sheet-body">
       <div class="sheet-kpis">
-        <div class="sk"><div class="v num" style="color:${st.cls==='ok'?'var(--ok)':st.cls==='warn'?'var(--warn)':'var(--crit)'}">${au.pct}%</div><div class="l">Conformidade</div></div>
-        <div class="sk"><div class="v num">${au.criticosNao||0}</div><div class="l">Críticos</div></div>
-        <div class="sk"><div class="v" style="font-size:14px">${au.responsavel||'—'}</div><div class="l">Responsável</div></div>
+        <div class="sk"><div class="v num" style="color:${st.cls==='ok'?'var(--ok)':st.cls==='warn'?'var(--warn)':'var(--crit)'}">${Number(au.pct)||0}%</div><div class="l">Conformidade</div></div>
+        <div class="sk"><div class="v num">${Number(au.criticosNao)||0}</div><div class="l">Críticos</div></div>
+        <div class="sk"><div class="v" style="font-size:14px">${esc(au.responsavel||'-')}</div><div class="l">Responsável</div></div>
       </div>
       ${catsHtml}
       <button class="btn btn-block" style="background:var(--crit); margin-top:6px" id="btn-excluir">${icon('trash')} Excluir esta auditoria</button>
@@ -1250,7 +1317,7 @@ function abrirDetalhe(au){
   requestAnimationFrame(()=> sheet.classList.add("open"));
 
   document.getElementById("sheet-close").addEventListener("click", fecharDetalhe);
-  document.getElementById("sheet-backdrop").addEventListener("click", fecharDetalhe, {once:true});
+  document.getElementById("sheet-backdrop").onclick = fecharDetalhe;
   document.getElementById("btn-excluir").addEventListener("click", async ()=>{
     const ok = await confirmDialog("Excluir auditoria?", "Essa ação não pode ser desfeita.", "Excluir");
     if(!ok) return;
@@ -1270,11 +1337,63 @@ function fecharDetalhe(){
 }
 
 /* =========================================================
+   PWA: instalar app (Chrome/Android) + dica no iPhone
+   ========================================================= */
+let deferredInstall=null;
+const isStandalone = ()=> window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+const isIOS = ()=> /iphone|ipad|ipod/i.test(navigator.userAgent);
+function installDismissed(){ try{ return localStorage.getItem("installDismissed")==="1"; }catch(e){ return false; } }
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredInstall=e;
+  if(STATE.tab==="inicio" && !document.getElementById("app-root").classList.contains("hidden")) renderView();
+});
+window.addEventListener("appinstalled", ()=>{
+  deferredInstall=null;
+  toast("App instalado! Procure o ícone na tela inicial.");
+  if(STATE.tab==="inicio") renderView();
+});
+function installCardHtml(){
+  if(isStandalone() || installDismissed()) return "";
+  if(deferredInstall){
+    return `<div class="install-card" id="install-card">
+      <img src="auditoria-pd/icons/icon-192.png" alt="">
+      <div class="ic-txt"><div class="ic-t">Instale o app no celular</div><div class="ic-s">Abre direto da tela inicial, como um aplicativo.</div></div>
+      <button class="btn btn-gold" id="install-btn">Instalar</button>
+      <button class="ic-close" id="install-close" aria-label="Dispensar">${ICO.x}</button>
+    </div>`;
+  }
+  if(isIOS()){
+    return `<div class="install-card" id="install-card">
+      <img src="auditoria-pd/icons/icon-192.png" alt="">
+      <div class="ic-txt"><div class="ic-t">Instale no iPhone</div><div class="ic-s">No Safari, toque em Compartilhar e depois em "Adicionar à Tela de Início".</div></div>
+      <button class="ic-close" id="install-close" aria-label="Dispensar">${ICO.x}</button>
+    </div>`;
+  }
+  return "";
+}
+function bindInstallCard(root){
+  const btn=root.querySelector("#install-btn");
+  if(btn) btn.addEventListener("click", async ()=>{
+    if(!deferredInstall) return;
+    deferredInstall.prompt();
+    try{ await deferredInstall.userChoice; }catch(e){}
+    deferredInstall=null;
+    renderView();
+  });
+  const close=root.querySelector("#install-close");
+  if(close) close.addEventListener("click", ()=>{
+    try{ localStorage.setItem("installDismissed","1"); }catch(e){}
+    const card=root.querySelector("#install-card"); if(card) card.remove();
+  });
+}
+
+/* =========================================================
    PWA: registra o service worker
    ========================================================= */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(err => console.error("SW falhou:", err));
+    navigator.serviceWorker.register("sw-auditoria.js", {scope:"./auditoriapaodelicia.html"}).catch(err => console.error("SW falhou:", err));
   });
 }
 </script>
