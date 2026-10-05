@@ -1,0 +1,20 @@
+{
+  "id": "/auditoriapaodelicia.html",
+  "name": "Auditoria Balcão · Pão Delícia",
+  "short_name": "Auditoria",
+  "description": "Checklist de auditoria diária, histórico e indicadores do balcão da Pão Delícia.",
+  "start_url": "../auditoriapaodelicia.html",
+  "scope": "../auditoriapaodelicia.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#3E1F06",
+  "theme_color": "#3E1F06",
+  "lang": "pt-BR",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
