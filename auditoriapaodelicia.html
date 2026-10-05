@@ -223,6 +223,33 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
 .wizard-content{min-height:38vh}
 
 .setup-grid{display:grid; gap:14px}
+.obs-card textarea{margin-top:8px}
+.foto-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.foto-th{position:relative; width:72px; height:72px}
+.foto-th img{width:100%; height:100%; object-fit:cover; border-radius:12px; border:1px solid var(--line); cursor:pointer}
+.foto-del{position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; border:none; background:var(--crit); color:#fff; font-size:15px; line-height:1; cursor:pointer}
+.foto-add{width:72px; height:72px; border-radius:12px; border:1.5px dashed var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:11px; font-weight:800; color:var(--ink-soft); cursor:pointer}
+.foto-add svg{width:20px; height:20px}
+.detail-obs{margin-top:8px; padding:10px 12px; background:var(--paper-2); border-radius:12px; font-size:13px; color:var(--ink-soft); white-space:pre-wrap}
+.detail-time{margin-bottom:14px; font-size:13px; font-weight:700; color:var(--ink-soft)}
+.hub-list{display:grid; gap:12px}
+.hub-card{display:flex; align-items:center; gap:14px; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--paper); border:1.5px solid var(--line); border-radius:var(--r-lg); padding:16px; transition:transform .15s ease, box-shadow .15s ease}
+.hub-card:active{transform:scale(.98)}
+.hub-ico{flex:none; width:48px; height:48px; border-radius:14px; background:var(--gold-soft); color:var(--brown-3); display:flex; align-items:center; justify-content:center}
+.hub-ico svg{width:24px; height:24px}
+.hub-body{flex:1; min-width:0}
+.hub-name{font-family:'Fraunces',serif; font-size:18px}
+.hub-desc{font-size:12.5px; color:var(--ink-soft); margin-top:2px}
+.hub-meta{font-size:11.5px; color:var(--ink-faint); margin-top:6px}
+.hub-badge{display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:99px}
+.hub-badge svg{width:13px; height:13px}
+.hub-badge.done{background:var(--ok-bg); color:var(--ok); border:1px solid var(--ok-line)}
+.hub-badge.pending{background:var(--paper-2); color:var(--ink-soft); border:1px dashed var(--line)}
+.hub-go{flex:none; opacity:.5}
+.hub-go svg{width:18px; height:18px}
+.hub-chip{display:inline-flex; align-items:center; gap:8px; background:var(--gold-soft); color:var(--brown-3); border-radius:14px; padding:10px 14px; font-size:14px}
+.hub-chip svg{width:18px; height:18px}
 .turno-toggle{display:flex; gap:8px; background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:5px}
 .turno-toggle button{
   flex:1; border:none; background:none; padding:11px 8px; border-radius:10px; font-weight:800; font-size:13.5px;
@@ -519,6 +546,11 @@ const CHECKLISTS = {"Manhã":ITENS_MANHA,"Tarde":ITENS_TARDE};
 const CONFORMES = new Set(["Sim","Foi Realizada"]);
 const PARCIAIS = new Set(["Parcial","Apenas a Validade","Talvez"]);
 
+const CHECKLIST_DEFS = [
+  {id:"Manhã", nome:"Balcão · Manhã", icone:"sun",  desc:"Abertura: validade, limpeza, insumos e organização do balcão."},
+  {id:"Tarde", nome:"Balcão · Tarde", icone:"moon", desc:"Fechamento: reposição, descarte, processos e observações do dia."},
+];
+function defChecklist(id){ return CHECKLIST_DEFS.find(d=>d.id===id) || CHECKLIST_DEFS[0]; }
 function itensDoTurno(turno){ return CHECKLISTS[turno] || ITENS_MANHA; }
 function categoriasComItens(itens){ return CATEGORIAS.filter(c => itens.some(i=>i.cat===c)); }
 
@@ -602,12 +634,51 @@ const STATE = {
   auditoriaAberta: null,
 };
 
+const MAX_FOTOS = 6;
+const MAX_FOTOS_CHARS = 720000; // mantém o documento abaixo do limite de 1 MB do Firestore
+function fmtHora(iso){
+  if(!iso) return "";
+  const d=new Date(iso);
+  return isNaN(d)? "" : d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+function duracaoMin(a,b){
+  const x=new Date(a), y=new Date(b);
+  if(isNaN(x)||isNaN(y)) return null;
+  return Math.max(0, Math.round((y-x)/60000));
+}
+function comprimirFoto(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      const max=900, k=Math.min(1, max/Math.max(img.width,img.height));
+      const c=document.createElement("canvas");
+      c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg",0.6));
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("imagem inválida")); };
+    img.src=url;
+  });
+}
+function abrirFoto(src){
+  const o=document.createElement("div");
+  o.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px";
+  const im=document.createElement("img");
+  im.src=src; im.style.cssText="max-width:100%;max-height:100%;border-radius:12px";
+  o.appendChild(im); o.addEventListener("click",()=>o.remove());
+  document.body.appendChild(o);
+}
 function novoWizard(turnoPreferido){
   return {
     turno: turnoPreferido || "Manhã",
     data: todayISO(),
     responsavel: "",
     respostas: {},
+    obs: {},
+    fotos: [],
+    horaInicio: new Date().toISOString(),
     step: 0,
   };
 }
@@ -714,6 +785,10 @@ function subscribeAuditorias(){
 async function salvarAuditoriaFirestore(registro){
   const docId = `${registro.data}_${registro.turno}`;
   await db.collection("auditorias").doc(docId).set({
+    horaInicio: registro.horaInicio || null,
+    horaFim: registro.horaFim || null,
+    obsEtapas: registro.obsEtapas || {},
+    fotos: registro.fotos || [],
     data: registro.data,
     turno: registro.turno,
     responsavel: registro.responsavel,
@@ -747,7 +822,7 @@ function renderBottomNav(){
 }
 function goTab(tabId){
   STATE.tab = tabId;
-  if(tabId==="nova" && !STATE.wizard){ STATE.wizard = novoWizard(); }
+  
   renderBottomNav();
   renderView();
 }
@@ -760,7 +835,10 @@ function renderView(){
   const titleEl=document.getElementById("appbar-title");
   el.classList.remove("view-fade"); void el.offsetWidth; el.classList.add("view-fade");
   if(STATE.tab==="inicio"){ titleEl.textContent="Auditoria Balcão"; renderInicio(el); }
-  else if(STATE.tab==="nova"){ titleEl.textContent="Nova Auditoria"; renderWizard(el); }
+  else if(STATE.tab==="nova"){
+    if(STATE.wizard){ titleEl.textContent=defChecklist(STATE.wizard.turno).nome; renderWizard(el); }
+    else { titleEl.textContent="Auditorias"; renderHub(el); }
+  }
   else if(STATE.tab==="historico"){ titleEl.textContent="Histórico"; renderHistorico(el); }
 }
 
@@ -941,8 +1019,51 @@ function wizardSteps(){
   return [{type:"setup"}, ...cats.map(c=>({type:"cat", cat:c})), {type:"review"}];
 }
 
+function renderHub(el){
+  destroyCharts();
+  const cards = CHECKLIST_DEFS.map(d=>{
+    const itens = d.id==="Manhã"? ITENS_MANHA : ITENS_TARDE;
+    const cats = categoriasComItens(itens).length;
+    const au = auditoriaDoTurnoHoje(d.id);
+    let status;
+    if(au){
+      const st=statusFromPct(au.pct);
+      status = `<span class="hub-badge done">${icon("checkCircle")} Hoje: ${Number(au.pct)||0}% · ${st.label}</span>`;
+    } else {
+      status = `<span class="hub-badge pending">Pendente hoje</span>`;
+    }
+    return `<button type="button" class="hub-card" data-check="${d.id}">
+      <div class="hub-ico">${icon(d.icone)}</div>
+      <div class="hub-body">
+        <div class="hub-name">${d.nome}</div>
+        <div class="hub-desc">${d.desc}</div>
+        <div class="hub-meta num">${itens.length} itens · ${cats} etapas</div>
+        ${status}
+      </div>
+      <div class="hub-go">${icon("chevronRight")}</div>
+    </button>`;
+  }).join("");
+  el.innerHTML = `
+    <h2 class="wizard-title">Checklists de auditoria</h2>
+    <p class="wizard-sub">Escolha qual checklist você vai aplicar agora.</p>
+    <div class="hub-list">${cards}</div>`;
+  el.querySelectorAll(".hub-card").forEach(c=>{
+    c.addEventListener("click", ()=>{
+      const id=c.dataset.check;
+      const au=auditoriaDoTurnoHoje(id);
+      if(au){
+        confirmDialog("Já existe auditoria de hoje", `${defChecklist(id).nome} já foi registrada hoje. Deseja abrir o resultado?`, "Abrir resultado")
+          .then(ok=>{ if(ok) abrirDetalhe(au); });
+        return;
+      }
+      STATE.wizard = novoWizard(id);
+      renderView();
+    });
+  });
+}
+
 function renderWizard(el){
-  if(!STATE.wizard) STATE.wizard = novoWizard();
+  if(!STATE.wizard){ renderHub(el); return; }
   const w = STATE.wizard;
   const steps = wizardSteps();
   if(w.step >= steps.length) w.step = steps.length-1;
@@ -969,7 +1090,14 @@ function renderWizard(el){
     <div class="wizard-content view-fade">${body}</div>
   `;
 
-  document.getElementById("wz-close").addEventListener("click", ()=> goTab("inicio"));
+  document.getElementById("wz-close").addEventListener("click", async ()=>{
+    const temDados = Object.keys(w.respostas).length>0;
+    if(temDados){
+      const ok = await confirmDialog("Sair do checklist?", "As respostas já preenchidas serão descartadas.", "Descartar");
+      if(!ok) return;
+    }
+    STATE.wizard=null; renderBottomNav(); renderView();
+  });
   bindStepEvents(step);
 }
 
@@ -977,14 +1105,10 @@ function renderStepSetup(){
   const w=STATE.wizard;
   return `
     <h2 class="wizard-title">Vamos começar</h2>
-    <p class="wizard-sub">Confirme o turno, a data e quem está auditando.</p>
+    <p class="wizard-sub">Confirme a data e quem está auditando.</p>
     <div class="setup-grid">
       <div>
-        <label style="display:block; font-size:11.5px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px">Turno</label>
-        <div class="turno-toggle">
-          <button type="button" data-turno="Manhã" class="${w.turno==='Manhã'?'active':''}">${icon('sun')} Manhã</button>
-          <button type="button" data-turno="Tarde" class="${w.turno==='Tarde'?'active':''}">${icon('moon')} Tarde</button>
-        </div>
+        <div class="hub-chip">${icon(defChecklist(w.turno).icone)} <b>${defChecklist(w.turno).nome}</b></div>
       </div>
       <div class="field" style="margin:0">
         <label>Data</label>
@@ -1040,6 +1164,14 @@ function renderStepCategoria(cat){
       <span class="num">${respondidos}/${itens.length}</span>
     </div>
     ${itemsHtml}
+    <div class="item-card obs-card">
+      <div class="item-label">Observações desta etapa <span style="font-weight:600; color:var(--ink-faint)">(opcional)</span></div>
+      <textarea data-obs="${cat}" placeholder="Anote o que chamou atenção...">${esc((w.obs||{})[cat])}</textarea>
+      <div class="foto-row">
+        ${(w.fotos||[]).map((f,i)=> f.cat===cat? `<div class="foto-th"><img src="${f.src}" data-foto="${i}" alt="Foto"><button type="button" class="foto-del" data-del="${i}" aria-label="Remover foto">&times;</button></div>` : "").join("")}
+        <label class="foto-add">${icon('plus')}<span>Foto</span><input type="file" accept="image/*" id="wz-foto" hidden></label>
+      </div>
+    </div>
     <div class="wizard-nav">
       <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
       <button class="btn" id="wz-next">Próximo ${icon('chevronRight')}</button>
@@ -1116,14 +1248,6 @@ function bindStepEvents(step){
   const steps=wizardSteps();
 
   if(step.type==="setup"){
-    document.querySelectorAll(".turno-toggle button").forEach(b=>{
-      b.addEventListener("click", ()=>{
-        if(b.dataset.turno!==w.turno){
-          w.turno=b.dataset.turno; w.respostas={};
-        }
-        renderWizard(document.getElementById("view"));
-      });
-    });
     document.getElementById("wz-data").addEventListener("change", e=> w.data=e.target.value);
     document.getElementById("wz-resp").addEventListener("input", e=> w.responsavel=e.target.value);
     document.getElementById("wz-next").addEventListener("click", ()=>{
@@ -1167,6 +1291,20 @@ function bindStepEvents(step){
         refreshCatProgress();
       });
     });
+    document.querySelector("textarea[data-obs]").addEventListener("input", e=>{ (w.obs=w.obs||{})[step.cat]=e.target.value; });
+    const rerender=()=>{ const y=window.scrollY; renderWizard(document.getElementById("view")); window.scrollTo(0,y); };
+    document.querySelectorAll("img[data-foto]").forEach(im=> im.addEventListener("click", ()=> abrirFoto(im.src)));
+    document.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=>{ w.fotos.splice(Number(b.dataset.del),1); rerender(); }));
+    document.getElementById("wz-foto").addEventListener("change", async e=>{
+      const f=e.target.files[0]; if(!f) return;
+      if(w.fotos.length>=MAX_FOTOS){ toast(`Limite de ${MAX_FOTOS} fotos por auditoria.`, "err"); return; }
+      try{
+        const src=await comprimirFoto(f);
+        const total=w.fotos.reduce((n,x)=>n+x.src.length,0)+src.length;
+        if(total>MAX_FOTOS_CHARS){ toast("Fotos demais para esta auditoria. Remova alguma.", "err"); return; }
+        w.fotos.push({cat:step.cat, src}); rerender();
+      }catch(err){ toast("Não foi possível usar essa foto.", "err"); }
+    });
     document.getElementById("wz-back").addEventListener("click", ()=> goStep(w.step-1));
     document.getElementById("wz-next").addEventListener("click", ()=> goStep(w.step+1));
   }
@@ -1190,6 +1328,9 @@ function bindStepEvents(step){
           await salvarAuditoriaFirestore({
             data:w.data, turno:w.turno, responsavel:w.responsavel.trim(),
             respostas:respostasFinal, pct, criticosNao,
+            horaInicio:w.horaInicio, horaFim:new Date().toISOString(),
+            obsEtapas:Object.fromEntries(Object.entries(w.obs||{}).filter(([,v])=>String(v).trim())),
+            fotos:w.fotos||[],
           });
           mostrarSucesso(pct);
         }catch(err){
@@ -1293,8 +1434,14 @@ function abrirDetalhe(au){
         <div class="di-val">${esc(val || '-')}</div>
       </div>`;
     }).join("");
-    return `<div class="detail-cat"><h4>${cat}</h4>${rows}</div>`;
+    const ob=((au.obsEtapas||{})[cat]||"").trim();
+    const fts=(Array.isArray(au.fotos)?au.fotos:[]).filter(f=>f&&f.cat===cat&&typeof f.src==="string"&&f.src.startsWith("data:image/"));
+    const extra=(ob? `<div class="detail-obs">${esc(ob)}</div>`:"") +
+      (fts.length? `<div class="foto-row">${fts.map(f=>`<div class="foto-th"><img src="${f.src}" data-open alt="Foto"></div>`).join("")}</div>`:"");
+    return `<div class="detail-cat"><h4>${cat}</h4>${rows}${extra}</div>`;
   }).join("");
+  const hi=fmtHora(au.horaInicio), hf=fmtHora(au.horaFim), dur=duracaoMin(au.horaInicio,au.horaFim);
+  const tempoHtml = hi? `<div class="detail-time">${icon('clock')} Início ${hi}${hf? ` · Fim ${hf}`:""}${dur!==null? ` · ${dur} min`:""}</div>` : "";
 
   const sheet=document.getElementById("sheet-detail");
   sheet.innerHTML = `
@@ -1309,6 +1456,7 @@ function abrirDetalhe(au){
         <div class="sk"><div class="v num">${Number(au.criticosNao)||0}</div><div class="l">Críticos</div></div>
         <div class="sk"><div class="v" style="font-size:14px">${esc(au.responsavel||'-')}</div><div class="l">Responsável</div></div>
       </div>
+      ${tempoHtml}
       ${catsHtml}
       <button class="btn btn-block" style="background:var(--crit); margin-top:6px" id="btn-excluir">${icon('trash')} Excluir esta auditoria</button>
     </div>
@@ -1316,6 +1464,7 @@ function abrirDetalhe(au){
   document.getElementById("sheet-backdrop").classList.add("open");
   requestAnimationFrame(()=> sheet.classList.add("open"));
 
+  sheet.querySelectorAll("img[data-open]").forEach(im=> im.addEventListener("click", ()=> abrirFoto(im.src)));
   document.getElementById("sheet-close").addEventListener("click", fecharDetalhe);
   document.getElementById("sheet-backdrop").onclick = fecharDetalhe;
   document.getElementById("btn-excluir").addEventListener("click", async ()=>{
