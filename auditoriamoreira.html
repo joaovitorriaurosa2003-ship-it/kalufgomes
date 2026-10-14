@@ -1300,7 +1300,8 @@ function bindStepEvents(step){
           mostrarSucesso(pct);
         }catch(err){
           console.error(err);
-          toast("Erro ao salvar. Verifique sua conexão.", "err");
+          const cod = (err && err.code) ? String(err.code) : "";
+          toast(cod==="permission-denied" ? "Sem permissão para salvar. A regra do Firestore ainda não foi liberada." : "Erro ao salvar" + (cod? " ("+cod+")" : "") + ". Verifique sua conexão.", "err");
           saveBtn.disabled=false; saveBtn.innerHTML = icon('check')+' Salvar auditoria';
         }
       });
