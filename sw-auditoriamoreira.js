@@ -7,7 +7,6 @@ const CORE_ASSETS = [
   "./auditoriamoreira.html",
   "./auditoria-moreira/manifest.json",
   "./auditoria-moreira/assets/logo-moreira.png",
-  "./auditoria-moreira/assets/logo-kaluf-gomes.jpg",
   "./auditoria-moreira/icons/icon-192.png",
   "./auditoria-moreira/icons/icon-512.png",
   "./auditoria-moreira/icons/favicon-32.png",
