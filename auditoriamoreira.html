@@ -479,47 +479,43 @@ const OPT = {
   simnaoparcial:["Sim","Não","Parcial"],
   simnaotalvez:["Sim","Não","Talvez"],
   reposicao:["Foi Realizada","Não Foi Realizada"],
+  semanal:["Foi Realizada","Não Foi Realizada","Não é o dia"],
   validade:["Sim","Não","Apenas a Validade","Não Foi Retirado Produtos Vencidos","Não Foi Visto a Data de Validade"],
 };
-const CATEGORIAS = ["Produtos e Validade","Limpeza e Organização","Operação e Insumos","Processos e Pessoas","Descarte e Lixo","Observações"];
+const CATEGORIAS = ["Limpeza","Reposição","Café e Lanchonete","Balcão","Observações"];
 const CAT_ICON = {
-  "Produtos e Validade":"inbox","Limpeza e Organização":"sun","Operação e Insumos":"circle",
-  "Processos e Pessoas":"checkCircle","Descarte e Lixo":"trash","Observações":"alert"
+  "Limpeza":"sun","Reposição":"inbox","Café e Lanchonete":"circle","Balcão":"checkCircle","Observações":"alert"
 };
-const ITENS_MANHA = [
-  {id:"m01",cat:"Produtos e Validade",label:"Reposição dos produtos da gôndola",tipo:"opt",opts:OPT.reposicao,crit:false},
-  {id:"m02",cat:"Produtos e Validade",label:"Reposição da prateleira do pão de forma",tipo:"opt",opts:OPT.reposicao,crit:false},
-  {id:"m03",cat:"Produtos e Validade",label:"Verificada data de validade e retirada dos produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
-  {id:"m04",cat:"Produtos e Validade",label:"Todos os produtos com preço",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m05",cat:"Produtos e Validade",label:"Placas dos alimentos colocadas",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m06",cat:"Limpeza e Organização",label:"Vidros, geladeiras e vitrines foram limpos",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m07",cat:"Limpeza e Organização",label:"Vitrine de bebidas limpa e com datas dentro do prazo",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m08",cat:"Limpeza e Organização",label:"Vitrines de exposição limpas (Sobremesas, Roscas, Bolos, Frios, Leite, Laranja, Torta)",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m09",cat:"Limpeza e Organização",label:"Câmara de resfriamento organizada",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m10",cat:"Limpeza e Organização",label:"Vitrine de salgados limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m11",cat:"Limpeza e Organização",label:"Setor salgado limpo, organizado e caixas repostas",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m12",cat:"Limpeza e Organização",label:"Balcões, chão e cadeiras limpos e organizados",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m13",cat:"Operação e Insumos",label:"Utensílios limpos (Liquidificador, Chapa, Máquina de café)",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m14",cat:"Operação e Insumos",label:"Produtos sendo cobertos com o véu",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m15",cat:"Operação e Insumos",label:"Embalagens repostas e local limpo",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m16",cat:"Operação e Insumos",label:"Insumos do balcão repostos (Leite, Gelo, Frios, Saladas, Coca, Laranja, Ovos, Pães)",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m17",cat:"Processos e Pessoas",label:"Encomendas anotadas e passadas corretamente",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m18",cat:"Processos e Pessoas",label:"Detergente e álcool repostos",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m19",cat:"Descarte e Lixo",label:"Lixos orgânico e inorgânico retirados",tipo:"opt",opts:OPT.simnao,crit:false},
-  {id:"m20",cat:"Descarte e Lixo",label:"Lixos sendo retirados e separação correta",tipo:"opt",opts:OPT.simnao,crit:false},
+const ITENS = [
+  {id:"n01",cat:"Limpeza",label:"Vidros dos balcões e das geladeiras limpos (todos os dias)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n02",cat:"Limpeza",label:"Cubas, bandejas e talheres limpos",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n03",cat:"Limpeza",label:"Chão do balcão limpo",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n04",cat:"Limpeza",label:"Pia e louças lavadas (todos os dias)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n05",cat:"Limpeza",label:"Geladeiras, gôndolas e mesas limpas (1x na semana)",tipo:"opt",opts:OPT.semanal,crit:false},
+  {id:"n06",cat:"Limpeza",label:"Chapa limpa (1x na semana)",tipo:"opt",opts:OPT.semanal,crit:false},
+  {id:"n07",cat:"Reposição",label:"Geladeiras e gôndolas de pão repostas",tipo:"opt",opts:OPT.reposicao,crit:false},
+  {id:"n08",cat:"Reposição",label:"Validade dos produtos repostos verificada, PVPS (primeiro que vence, primeiro que sai)",tipo:"opt",opts:OPT.validade,crit:true},
+  {id:"n09",cat:"Reposição",label:"Geladeira de refrigerantes reposta (1x na semana)",tipo:"opt",opts:OPT.semanal,crit:false},
+  {id:"n10",cat:"Reposição",label:"Gôndolas externas repostas (1x na semana)",tipo:"opt",opts:OPT.semanal,crit:false},
+  {id:"n11",cat:"Café e Lanchonete",label:"Guardanapos, ketchup, maionese e copos descartáveis repostos",tipo:"opt",opts:OPT.reposicao,crit:false},
+  {id:"n12",cat:"Balcão",label:"Castanhas e azeitonas repostas",tipo:"opt",opts:OPT.reposicao,crit:false},
+  {id:"n13",cat:"Balcão",label:"Potes e tampas lavados",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n14",cat:"Balcão",label:"Marmiteiro limpo e em manutenção",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n15",cat:"Balcão",label:"Lixo retirado",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"n16",cat:"Balcão",label:"Sobras retiradas, pesadas e colocadas no tambor",tipo:"opt",opts:OPT.reposicao,crit:false},
 ];
-// Manhã e Tarde usam exatamente o mesmo checklist.
-const ITENS_TARDE = ITENS_MANHA;
-const CHECKLISTS = {"Manhã":ITENS_MANHA,"Tarde":ITENS_TARDE};
+// Checklist único: não há mais separação por período.
+const TURNO_UNICO = "Dia";
+function rotuloTurno(t){ return (!t || t===TURNO_UNICO) ? "Auditoria do dia" : t; }
 const CONFORMES = new Set(["Sim","Foi Realizada"]);
 const PARCIAIS = new Set(["Parcial","Apenas a Validade","Talvez"]);
+const NEUTROS = new Set(["Não é o dia"]);
 
 const CHECKLIST_DEFS = [
-  {id:"Manhã", nome:"Balcão · Manhã", icone:"sun",  desc:"Abertura: validade, limpeza, insumos e organização do balcão."},
-  {id:"Tarde", nome:"Balcão · Tarde", icone:"moon", desc:"Fechamento: reposição, descarte, processos e observações do dia."},
+  {id:"Dia", nome:"Auditoria do Balcão", icone:"sun", desc:"Limpeza, reposição, café e lanchonete e balcão."},
 ];
 function defChecklist(id){ return CHECKLIST_DEFS.find(d=>d.id===id) || CHECKLIST_DEFS[0]; }
-function itensDoTurno(turno){ return CHECKLISTS[turno] || ITENS_MANHA; }
+function itensDoTurno(turno){ return ITENS; }
 function itensDaAuditoria(a){ return itensDoTurno(a && a.turno); }
 function categoriasComItens(itens){ return CATEGORIAS.filter(c => itens.some(i=>i.cat===c)); }
 
@@ -529,6 +525,7 @@ function calcConformidade(itens, respostas){
     if(it.tipo==="texto") return;
     const r = respostas[it.id];
     if(r===undefined || r===null || r===""){ faltando.push(it.label); return; }
+    if(NEUTROS.has(r)) return;
     total++;
     if(CONFORMES.has(r)) pontos+=1;
     else if(PARCIAIS.has(r)) pontos+=0.5;
@@ -641,7 +638,7 @@ function abrirFoto(src){
 }
 function novoWizard(turnoPreferido){
   return {
-    turno: turnoPreferido || "Manhã",
+    turno: turnoPreferido || TURNO_UNICO,
     data: todayISO(),
     responsavel: "",
     respostas: {},
@@ -837,8 +834,7 @@ function destroyCharts(){
 function renderInicio(el){
   destroyCharts();
   const hoje = fmtDataLonga(todayISO());
-  const auManha = auditoriaDoTurnoHoje("Manhã");
-  const auTarde = auditoriaDoTurnoHoje("Tarde");
+  const auDia = auditoriaDoTurnoHoje(TURNO_UNICO);
 
   const total = STATE.auditorias.length;
   const mediaP = total? Math.round((STATE.auditorias.reduce((s,a)=>s+(a.pct||0),0)/total)*10)/10 : 0;
@@ -849,13 +845,13 @@ function renderInicio(el){
     if(au){
       const st=statusFromPct(au.pct);
       return `<div class="today-card done" data-turno="${turno}">
-        <div class="turno-label">${icon(turno==="Manhã"?"sun":"moon")} ${turno}</div>
+        <div class="turno-label">${icon("sun")} Hoje</div>
         <div class="turno-status">Concluída</div>
         <div class="turno-pct num">${Number(au.pct)||0}% · ${st.label}</div>
       </div>`;
     }
     return `<div class="today-card pending" data-turno="${turno}">
-      <div class="turno-label">${icon(turno==="Manhã"?"sun":"moon")} ${turno}</div>
+      <div class="turno-label">${icon("sun")} Hoje</div>
       <div class="turno-status">Pendente</div>
       <div class="turno-pct">Toque para iniciar</div>
       <div class="go-arrow">${icon("chevronRight")}</div>
@@ -886,7 +882,7 @@ function renderInicio(el){
       itens.forEach(it=>{
         if(it.tipo==="texto") return;
         const r=(a.respostas||{})[it.id];
-        if(r && !CONFORMES.has(r)){ itemFalhas[it.label]=(itemFalhas[it.label]||0)+1; }
+        if(r && !CONFORMES.has(r) && !NEUTROS.has(r)){ itemFalhas[it.label]=(itemFalhas[it.label]||0)+1; }
       });
     });
     const itensArr=Object.entries(itemFalhas).sort((a,b)=>b[1]-a[1]).slice(0,3);
@@ -907,8 +903,7 @@ function renderInicio(el){
 
     <div class="section-title">Auditoria de hoje</div>
     <div class="today-grid">
-      ${turnoCard("Manhã", auManha)}
-      ${turnoCard("Tarde", auTarde)}
+      ${turnoCard(TURNO_UNICO, auDia)}
     </div>
 
     <div class="section-title">Indicadores gerais</div>
@@ -934,7 +929,7 @@ function renderInicio(el){
     <div class="card empty-state">
       ${icon("inbox")}
       <div class="t">Nenhuma auditoria ainda</div>
-      <div class="s">Toque em um dos turnos acima para começar a primeira auditoria de hoje.</div>
+      <div class="s">Toque no cartão acima para começar a primeira auditoria de hoje.</div>
     </div>
     `}
   `;
@@ -962,7 +957,7 @@ function renderInicio(el){
       type:"line",
       data:{
         labels: ordenadas.map(a=>{
-          const [,m,d]=a.data.split("-"); return `${d}/${m}·${a.turno[0]}`;
+          const [,m,d]=a.data.split("-"); return `${d}/${m}`;
         }),
         datasets:[{
           data: ordenadas.map(a=>a.pct),
@@ -1114,7 +1109,7 @@ function renderStepCategoria(cat){
     const pills = it.opts.map(o=>{
       let cls="pill";
       if(val===o){
-        cls += CONFORMES.has(o) ? " sel-ok" : PARCIAIS.has(o) ? " sel-warn" : " sel-crit";
+        cls += CONFORMES.has(o) ? " sel-ok" : (PARCIAIS.has(o)||NEUTROS.has(o)) ? " sel-warn" : " sel-crit";
       }
       return `<button type="button" class="${cls}" data-id="${it.id}" data-val="${o}">${o}</button>`;
     }).join("");
@@ -1187,7 +1182,7 @@ function renderStepRevisao(){
         <div>
           <div class="review-status-label" style="color:${color}">${st.label}</div>
           <div class="review-status-sub">${criticosNao} ${criticosNao===1?'item crítico reprovado':'itens críticos reprovados'}</div>
-          <div class="review-status-sub num">${w.turno} · ${fmtDataBR(w.data)}</div>
+          <div class="review-status-sub num">${rotuloTurno(w.turno)} · ${fmtDataBR(w.data)}</div>
         </div>
       </div>
     </div>
@@ -1199,7 +1194,7 @@ function renderStepRevisao(){
       <div style="font-size:12.5px; color:var(--ink-soft)">Volte nas categorias marcadas acima para concluir antes de salvar.</div>
     </div>` : ""}
     ${STATE.auditorias.some(a=>a.id===`${w.data}_${w.turno}`)? `
-    <div class="warn-note">${icon('alert')}<span>Já existe uma auditoria de ${w.turno} em ${fmtDataBR(w.data)}. Ao salvar, ela será substituída por esta.</span></div>` : ""}
+    <div class="warn-note">${icon('alert')}<span>Já existe uma auditoria em ${fmtDataBR(w.data)}. Ao salvar, ela será substituída por esta.</span></div>` : ""}
     <div class="wizard-nav">
       <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
       <button class="btn btn-gold" id="wz-save" ${faltando.length?'disabled':''}>${icon('check')} Salvar auditoria</button>
@@ -1249,7 +1244,7 @@ function bindStepEvents(step){
         w.respostas[p.dataset.id]=val;
         const card=p.closest(".item-card");
         card.querySelectorAll(".pill").forEach(x=>x.classList.remove("sel-ok","sel-warn","sel-crit"));
-        p.classList.add(CONFORMES.has(val)?"sel-ok":PARCIAIS.has(val)?"sel-warn":"sel-crit");
+        p.classList.add(CONFORMES.has(val)?"sel-ok":(PARCIAIS.has(val)||NEUTROS.has(val))?"sel-warn":"sel-crit");
         card.classList.add("answered");
         refreshCatProgress();
       });
@@ -1340,9 +1335,6 @@ function renderHistorico(el){
 
   el.innerHTML = `
     <div class="filter-row">
-      <button class="chip ${STATE.hist.turno==='todos'?'active':''}" data-f="turno" data-v="todos">Todos</button>
-      <button class="chip ${STATE.hist.turno==='Manhã'?'active':''}" data-f="turno" data-v="Manhã">${icon('sun')} Manhã</button>
-      <button class="chip ${STATE.hist.turno==='Tarde'?'active':''}" data-f="turno" data-v="Tarde">${icon('moon')} Tarde</button>
       <button class="chip ${STATE.hist.soCriticos?'active':''}" id="chip-crit">${icon('alert')} Críticos</button>
       <div class="chip">
         <select id="sel-resp">
@@ -1358,7 +1350,7 @@ function renderHistorico(el){
       <div class="hist-card" data-id="${esc(a.id)}">
         <div class="hc-date"><div class="d">${dt.d}</div><div class="m">${dt.m}</div></div>
         <div class="hc-mid">
-          <div class="turno-tag">${icon(a.turno==='Manhã'?'sun':'moon')} ${esc(a.turno)}</div>
+          <div class="turno-tag">${icon('sun')} ${esc(rotuloTurno(a.turno))}</div>
           <div class="resp">${esc(a.responsavel||'-')}</div>
         </div>
         <div class="badge ${st.cls}">${Number(a.pct)||0}%</div>
@@ -1417,7 +1409,7 @@ function abrirDetalhe(au){
   sheet.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div class="sh-title">${esc(au.turno)} · ${fmtDataBR(au.data)}</div>
+      <div class="sh-title">${esc(rotuloTurno(au.turno))} · ${fmtDataBR(au.data)}</div>
       <button class="icon-btn" id="sheet-close" style="background:var(--gold-soft); color:var(--brown-3)">${icon('x')}</button>
     </div>
     <div class="sheet-body">
