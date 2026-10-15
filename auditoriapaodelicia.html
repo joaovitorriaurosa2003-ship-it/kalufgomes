@@ -512,7 +512,8 @@ const ITENS_MANHA = [
   {id:"m24",cat:"Descarte e Lixo",label:"Lixos sendo retirados e separação correta",tipo:"opt",opts:OPT.simnao,crit:false},
   {id:"m25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnao,crit:false},
 ];
-const ITENS_TARDE = [
+// Versão antiga do checklist da tarde: usada só para exibir auditorias já salvas (sem campo "versao").
+const ITENS_TARDE_V1 = [
   {id:"t01",cat:"Limpeza e Organização",label:"Limpeza gôndula (realizada ou não e dia)",tipo:"texto"},
   {id:"t02",cat:"Produtos e Validade",label:"Reposição dos produtos gôndula",tipo:"opt",opts:OPT.reposicao,crit:false},
   {id:"t03",cat:"Produtos e Validade",label:"Foi olhada a data de validade e retirado produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
@@ -540,6 +541,8 @@ const ITENS_TARDE = [
   {id:"t25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnaoparcial,crit:false},
   {id:"t27",cat:"Observações",label:"Faça sua observação",tipo:"texto"},
 ];
+// Desde a versão 2, Manhã e Tarde usam exatamente o mesmo checklist.
+const ITENS_TARDE = ITENS_MANHA;
 const CHECKLISTS = {"Manhã":ITENS_MANHA,"Tarde":ITENS_TARDE};
 const CONFORMES = new Set(["Sim","Foi Realizada"]);
 const PARCIAIS = new Set(["Parcial","Apenas a Validade","Talvez"]);
@@ -550,6 +553,7 @@ const CHECKLIST_DEFS = [
 ];
 function defChecklist(id){ return CHECKLIST_DEFS.find(d=>d.id===id) || CHECKLIST_DEFS[0]; }
 function itensDoTurno(turno){ return CHECKLISTS[turno] || ITENS_MANHA; }
+function itensDaAuditoria(a){ return (a && a.turno==="Tarde" && !a.versao)? ITENS_TARDE_V1 : itensDoTurno(a && a.turno); }
 function categoriasComItens(itens){ return CATEGORIAS.filter(c => itens.some(i=>i.cat===c)); }
 
 function calcConformidade(itens, respostas){
@@ -571,8 +575,11 @@ function statusFromPct(pct){
   if(pct>=70) return {cls:"warn",label:"Atenção"};
   return {cls:"crit",label:"Crítico"};
 }
-function faltamObrigatorios(itens, respostas){
+// A auditoria da tarde (noite) não tem itens obrigatórios; a da manhã exige todos.
+function turnoExigeTudo(turno){ return turno!=="Tarde"; }
+function faltamObrigatorios(itens, respostas, turno){
   const faltando=[];
+  if(!turnoExigeTudo(turno)) return faltando;
   itens.forEach(it=>{
     const r = respostas[it.id];
     if(r===undefined || r===null || String(r).trim()==="") faltando.push(it.label);
@@ -783,6 +790,7 @@ function subscribeAuditorias(){
 async function salvarAuditoriaFirestore(registro){
   const docId = `${registro.data}_${registro.turno}`;
   await db.collection("auditorias").doc(docId).set({
+    versao: 2,
     horaInicio: registro.horaInicio || null,
     horaFim: registro.horaFim || null,
     obsEtapas: registro.obsEtapas || {},
@@ -910,7 +918,7 @@ function renderInicio(el){
 
     const itemFalhas={};
     STATE.auditorias.forEach(a=>{
-      const itens=itensDoTurno(a.turno);
+      const itens=itensDaAuditoria(a);
       itens.forEach(it=>{
         if(it.tipo==="texto") return;
         const r=(a.respostas||{})[it.id];
@@ -1020,7 +1028,7 @@ function wizardSteps(){
 function renderHub(el){
   destroyCharts();
   const cards = CHECKLIST_DEFS.map(d=>{
-    const itens = d.id==="Manhã"? ITENS_MANHA : ITENS_TARDE;
+    const itens = itensDoTurno(d.id);
     const cats = categoriasComItens(itens).length;
     const au = auditoriaDoTurnoHoje(d.id);
     let status;
@@ -1182,7 +1190,9 @@ function renderStepRevisao(){
   const itens=itensDoTurno(w.turno);
   const cats=categoriasComItens(itens);
   const {pct, criticosNao} = calcConformidade(itens, w.respostas);
-  const faltando = faltamObrigatorios(itens, w.respostas);
+  const faltando = faltamObrigatorios(itens, w.respostas, w.turno);
+  const exigeTudo = turnoExigeTudo(w.turno);
+  const semNenhuma = !exigeTudo && calcConformidade(itens, w.respostas).faltando.length === itens.filter(i=>i.tipo!=="texto").length;
   const st = statusFromPct(pct);
   const circ = 2*Math.PI*36;
   const dash = circ - (pct/100)*circ;
@@ -1192,10 +1202,11 @@ function renderStepRevisao(){
     const catItens = itens.filter(i=>i.cat===cat);
     const catFalt = catItens.filter(i=>{ const v=w.respostas[i.id]; return v===undefined || String(v).trim()===""; });
     const ok = catFalt.length===0;
+    const rotulo = ok? 'revisar' : exigeTudo? `${catFalt.length} pendente${catFalt.length>1?'s':''}` : `${catFalt.length} sem resposta`;
     return `<div class="cat-check-row ${ok?'ok':'pending'}">
       ${ok? icon('checkCircle') : icon('circle')}
       <span>${cat}</span>
-      <span class="go" data-cat="${cat}">${ok? 'revisar' : `${catFalt.length} pendente${catFalt.length>1?'s':''}`}</span>
+      <span class="go" data-cat="${cat}">${rotulo}</span>
     </div>`;
   }).join("");
 
@@ -1226,11 +1237,13 @@ function renderStepRevisao(){
       <div style="font-weight:800; color:var(--crit); font-size:13px; margin-bottom:6px">${icon('alert')} Faltam ${faltando.length} resposta${faltando.length>1?'s':''}</div>
       <div style="font-size:12.5px; color:var(--ink-soft)">Volte nas categorias marcadas acima para concluir antes de salvar.</div>
     </div>` : ""}
+    ${semNenhuma? `
+    <div class="warn-note">${icon('alert')}<span>Responda pelo menos um item para salvar. Nesta auditoria nenhum item é obrigatório.</span></div>` : ""}
     ${STATE.auditorias.some(a=>a.id===`${w.data}_${w.turno}`)? `
     <div class="warn-note">${icon('alert')}<span>Já existe uma auditoria de ${w.turno} em ${fmtDataBR(w.data)}. Ao salvar, ela será substituída por esta.</span></div>` : ""}
     <div class="wizard-nav">
       <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
-      <button class="btn btn-gold" id="wz-save" ${faltando.length?'disabled':''}>${icon('check')} Salvar auditoria</button>
+      <button class="btn btn-gold" id="wz-save" ${(faltando.length||semNenhuma)?'disabled':''}>${icon('check')} Salvar auditoria</button>
     </div>
   `;
 }
@@ -1418,7 +1431,7 @@ function renderHistorico(el){
 /* ---------- SHEET DE DETALHE ---------- */
 function abrirDetalhe(au){
   STATE.auditoriaAberta = au;
-  const itens = itensDoTurno(au.turno);
+  const itens = itensDaAuditoria(au);
   const cats = categoriasComItens(itens);
   const st = statusFromPct(au.pct);
 
