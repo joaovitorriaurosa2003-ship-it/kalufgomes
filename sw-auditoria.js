@@ -7,7 +7,6 @@ const CORE_ASSETS = [
   "./auditoriapaodelicia.html",
   "./auditoria-pd/manifest.json",
   "./auditoria-pd/assets/logo-pao-delicia.png",
-  "./auditoria-pd/assets/logo-kaluf-gomes.jpg",
   "./auditoria-pd/icons/icon-192.png",
   "./auditoria-pd/icons/icon-512.png",
   "./auditoria-pd/icons/favicon-32.png",
