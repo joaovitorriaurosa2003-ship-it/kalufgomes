@@ -232,6 +232,9 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
 .foto-add svg{width:20px; height:20px}
 .detail-obs{margin-top:8px; padding:10px 12px; background:var(--paper-2); border-radius:12px; font-size:13px; color:var(--ink-soft); white-space:pre-wrap}
 .detail-time{margin-bottom:14px; font-size:13px; font-weight:700; color:var(--ink-soft)}
+.hub-wrap{display:grid; gap:8px}
+.hub-today{display:flex; flex-wrap:wrap; gap:6px; padding:0 4px}
+.hub-chip-btn{font:inherit; font-size:11.5px; font-weight:800; color:var(--brown-3); background:var(--gold-soft); border:none; border-radius:99px; padding:6px 12px; cursor:pointer}
 .hub-list{display:grid; gap:12px}
 .hub-card{display:flex; align-items:center; gap:14px; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer;
   background:var(--paper); border:1.5px solid var(--line); border-radius:var(--r-lg); padding:16px; transition:transform .15s ease, box-shadow .15s ease}
@@ -819,7 +822,10 @@ function subscribeAuditorias(){
 }
 
 async function salvarAuditoriaFirestore(registro){
-  const docId = `${registro.data}_${registro.turno}`;
+  // Várias auditorias por dia e turno: o id inclui a hora de início (HHMMSS).
+  const ini = registro.horaInicio ? new Date(registro.horaInicio) : new Date();
+  const hms = [ini.getHours(), ini.getMinutes(), ini.getSeconds()].map(n=>String(n).padStart(2,"0")).join("");
+  const docId = `${registro.data}_${registro.turno}_${hms}`;
   await db.collection("auditorias").doc(docId).set({
     versao: 3,
     horaInicio: registro.horaInicio || null,
@@ -880,10 +886,13 @@ function renderView(){
 }
 
 /* ---------- INÍCIO ---------- */
-function auditoriaDoTurnoHoje(turno){
-  const id = `${todayISO()}_${turno}`;
-  return STATE.auditorias.find(a=>a.id===id);
+function ordemHora(a){ return a.horaInicio || ""; }
+function auditoriasDeHoje(turno){
+  return STATE.auditorias
+    .filter(a=>a.data===todayISO() && a.turno===turno)
+    .sort((x,y)=> ordemHora(y).localeCompare(ordemHora(x)));
 }
+function auditoriaDoTurnoHoje(turno){ return auditoriasDeHoje(turno)[0]; }
 function animateCount(el, to, decimals){
   const from=0, dur=650, t0=performance.now();
   function step(t){
@@ -915,10 +924,12 @@ function renderInicio(el){
   function turnoCard(turno, au){
     if(au){
       const st=statusFromPct(au.pct);
+      const n=auditoriasDeHoje(turno).length;
       return `<div class="today-card done" data-turno="${turno}">
         <div class="turno-label">${icon(turno==="Manhã"?"sun":"moon")} ${turno}</div>
-        <div class="turno-status">Concluída</div>
+        <div class="turno-status">${n>1? n+' concluídas' : 'Concluída'}</div>
         <div class="turno-pct num">${Number(au.pct)||0}% · ${st.label}</div>
+        <div class="go-arrow">${icon("chevronRight")}</div>
       </div>`;
     }
     return `<div class="today-card pending" data-turno="${turno}">
@@ -1016,7 +1027,7 @@ function renderInicio(el){
     card.addEventListener("click", ()=>{
       const turno=card.dataset.turno;
       const au = auditoriaDoTurnoHoje(turno);
-      if(au){ abrirDetalhe(au); return; }
+      if(au){ goTab("nova"); return; } // já há auditoria hoje: abre a lista, onde dá para ver ou iniciar outra
       STATE.wizard = novoWizard(turno);
       goTab("nova");
     });
@@ -1061,15 +1072,16 @@ function renderHub(el){
   const cards = CHECKLIST_DEFS.map(d=>{
     const itens = itensDoTurno(d.id);
     const cats = categoriasComItens(itens).length;
-    const au = auditoriaDoTurnoHoje(d.id);
+    const hoje = auditoriasDeHoje(d.id);
     let status;
-    if(au){
-      const st=statusFromPct(au.pct);
-      status = `<span class="hub-badge done">${icon("checkCircle")} Hoje: ${Number(au.pct)||0}% · ${st.label}</span>`;
+    if(hoje.length){
+      const au=hoje[0], st=statusFromPct(au.pct);
+      status = `<span class="hub-badge done">${icon("checkCircle")} Hoje: ${hoje.length} · última ${Number(au.pct)||0}% · ${st.label}</span>`;
     } else {
       status = `<span class="hub-badge pending">Pendente hoje</span>`;
     }
-    return `<button type="button" class="hub-card" data-check="${d.id}">
+    const chips = hoje.length? `<div class="hub-today">${hoje.map(a=>`<button type="button" class="hub-chip-btn" data-open="${esc(a.id)}">${fmtHora(a.horaInicio)||"-"} · ${Number(a.pct)||0}%</button>`).join("")}</div>` : "";
+    return `<div class="hub-wrap"><button type="button" class="hub-card" data-check="${d.id}">
       <div class="hub-ico">${icon(d.icone)}</div>
       <div class="hub-body">
         <div class="hub-name">${d.nome}</div>
@@ -1078,7 +1090,7 @@ function renderHub(el){
         ${status}
       </div>
       <div class="hub-go">${icon("chevronRight")}</div>
-    </button>`;
+    </button>${chips}</div>`;
   }).join("");
   el.innerHTML = `
     <h2 class="wizard-title">Checklists de auditoria</h2>
@@ -1086,15 +1098,14 @@ function renderHub(el){
     <div class="hub-list">${cards}</div>`;
   el.querySelectorAll(".hub-card").forEach(c=>{
     c.addEventListener("click", ()=>{
-      const id=c.dataset.check;
-      const au=auditoriaDoTurnoHoje(id);
-      if(au){
-        confirmDialog("Já existe auditoria de hoje", `${defChecklist(id).nome} já foi registrada hoje. Deseja abrir o resultado?`, "Abrir resultado")
-          .then(ok=>{ if(ok) abrirDetalhe(au); });
-        return;
-      }
-      STATE.wizard = novoWizard(id);
+      STATE.wizard = novoWizard(c.dataset.check);
       renderView();
+    });
+  });
+  el.querySelectorAll(".hub-chip-btn").forEach(c=>{
+    c.addEventListener("click", ()=>{
+      const au=STATE.auditorias.find(a=>a.id===c.dataset.open);
+      if(au) abrirDetalhe(au);
     });
   });
 }
@@ -1270,8 +1281,6 @@ function renderStepRevisao(){
     </div>` : ""}
     ${semNenhuma? `
     <div class="warn-note">${icon('alert')}<span>Responda pelo menos um item para salvar. Nesta auditoria nenhum item é obrigatório.</span></div>` : ""}
-    ${STATE.auditorias.some(a=>a.id===`${w.data}_${w.turno}`)? `
-    <div class="warn-note">${icon('alert')}<span>Já existe uma auditoria de ${w.turno} em ${fmtDataBR(w.data)}. Ao salvar, ela será substituída por esta.</span></div>` : ""}
     <div class="wizard-nav">
       <button class="btn btn-ghost" id="wz-back">${icon('chevronLeft')} Voltar</button>
       <button class="btn btn-gold" id="wz-save" ${(faltando.length||semNenhuma)?'disabled':''}>${icon('check')} Salvar auditoria</button>
@@ -1407,7 +1416,7 @@ function renderHistorico(el){
   if(STATE.hist.turno!=="todos") lista = lista.filter(a=>a.turno===STATE.hist.turno);
   if(STATE.hist.resp!=="todos") lista = lista.filter(a=>a.responsavel===STATE.hist.resp);
   if(STATE.hist.soCriticos) lista = lista.filter(a=>(a.criticosNao||0)>0);
-  const chave=a=>`${a.data||""}_${a.turno||""}`;
+  const chave=a=>`${a.data||""}_${ordemHora(a)}_${a.turno||""}`;
   lista.sort((a,b)=> chave(b).localeCompare(chave(a)));
 
   el.innerHTML = `
@@ -1430,7 +1439,7 @@ function renderHistorico(el){
       <div class="hist-card" data-id="${esc(a.id)}">
         <div class="hc-date"><div class="d">${dt.d}</div><div class="m">${dt.m}</div></div>
         <div class="hc-mid">
-          <div class="turno-tag">${icon(a.turno==='Manhã'?'sun':'moon')} ${esc(a.turno)}</div>
+          <div class="turno-tag">${icon(a.turno==='Manhã'?'sun':'moon')} ${esc(a.turno)}${a.horaInicio? " · "+fmtHora(a.horaInicio):""}</div>
           <div class="resp">${esc(a.responsavel||'-')}</div>
         </div>
         <div class="badge ${st.cls}">${Number(a.pct)||0}%</div>
@@ -1489,7 +1498,7 @@ function abrirDetalhe(au){
   sheet.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-      <div class="sh-title">${esc(au.turno)} · ${fmtDataBR(au.data)}</div>
+      <div class="sh-title">${esc(au.turno)} · ${fmtDataBR(au.data)}${au.horaInicio? " · "+fmtHora(au.horaInicio):""}</div>
       <button class="icon-btn" id="sheet-close" style="background:var(--gold-soft); color:var(--brown-3)">${icon('x')}</button>
     </div>
     <div class="sheet-body">
