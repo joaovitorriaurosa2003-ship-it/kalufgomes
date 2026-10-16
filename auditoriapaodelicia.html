@@ -234,6 +234,10 @@ main.view{padding:18px 16px calc(96px + var(--safe-b)); min-height:60vh}
 .detail-time{margin-bottom:14px; font-size:13px; font-weight:700; color:var(--ink-soft)}
 .rank-name .rank-meta{font-size:11px; font-weight:600; color:var(--ink-faint); margin-top:2px}
 .rank-name svg{width:13px; height:13px; color:var(--crit); vertical-align:-2px}
+.radar-info{font-size:11.5px; color:var(--ink-faint); text-align:center; margin-top:6px}
+.rd-delta{font-size:11.5px; font-weight:800; color:var(--ink-faint); margin-right:10px}
+.rd-delta.up{color:var(--ok)}
+.rd-delta.down{color:var(--crit)}
 .hub-wrap{display:grid; gap:8px}
 .hub-today{display:flex; flex-wrap:wrap; gap:6px; padding:0 4px}
 .hub-chip-btn{font:inherit; font-size:11.5px; font-weight:800; color:var(--brown-3); background:var(--gold-soft); border:none; border-radius:99px; padding:6px 12px; cursor:pointer}
@@ -672,6 +676,7 @@ const STATE = {
   auditorias: [],
   wizard: null,
   hist: {turno:"todos", resp:"todos", soCriticos:false},
+  radar: {periodo:"30", turno:"todos", resp:"todos", comparar:true},
   auditoriaAberta: null,
 };
 
@@ -908,8 +913,131 @@ function animateCount(el, to, decimals){
 }
 
 let chartEvol=null;
+let chartRadar=null;
 function destroyCharts(){
   if(chartEvol){ chartEvol.destroy(); chartEvol=null; }
+  if(chartRadar){ chartRadar.destroy(); chartRadar=null; }
+}
+
+/* ---------- RADAR POR CATEGORIA ---------- */
+function radarDados(){
+  const f=STATE.radar;
+  const cats=categoriasComItens(ITENS_MANHA);
+  const dia=24*60*60*1000;
+  const hoje=new Date(todayISO()+"T00:00:00").getTime();
+  const dias=f.periodo==="todos"? null : Number(f.periodo);
+  const base=STATE.auditorias.filter(a=>
+    (f.turno==="todos"||a.turno===f.turno) && (f.resp==="todos"||a.responsavel===f.resp));
+  const noIntervalo=(a,ini,fim)=>{
+    const t=new Date(a.data+"T00:00:00").getTime();
+    return !isNaN(t) && t>=ini && t<fim;
+  };
+  const iniAtual = dias===null? -Infinity : hoje-(dias-1)*dia;
+  const fimAtual = hoje+dia;
+  const listaAtual = base.filter(a=>noIntervalo(a,iniAtual,fimAtual));
+  const listaAnt = dias===null? [] : base.filter(a=>noIntervalo(a, iniAtual-dias*dia, iniAtual));
+  const calc=lista=>{
+    const acc=Object.fromEntries(cats.map(c=>[c,{p:0,t:0}]));
+    lista.forEach(a=>itensDaAuditoria(a).forEach(it=>{
+      if(it.tipo==="texto"||!acc[it.cat]) return;
+      const r=(a.respostas||{})[it.id];
+      if(!r) return;
+      acc[it.cat].t++;
+      acc[it.cat].p += CONFORMES.has(r)?1 : PARCIAIS.has(r)?0.5 : 0;
+    }));
+    return cats.map(c=> acc[c].t? Math.round(acc[c].p/acc[c].t*1000)/10 : null);
+  };
+  return {cats, atual:calc(listaAtual), anterior:calc(listaAnt), nAtual:listaAtual.length, nAnterior:listaAnt.length};
+}
+
+function quebraRotulo(txt){
+  // quebra o nome da categoria em linhas curtas para caber ao lado do gráfico
+  const palavras=txt.split(" "), linhas=[]; let atual="";
+  palavras.forEach(w=>{
+    if(atual && (atual+" "+w).length>13){ linhas.push(atual); atual=w; }
+    else atual = atual? atual+" "+w : w;
+  });
+  if(atual) linhas.push(atual);
+  return linhas;
+}
+
+function atualizarRadar(){
+  const box=document.getElementById("radar-box");
+  if(!box) return;
+  if(chartRadar){ chartRadar.destroy(); chartRadar=null; }
+  const f=STATE.radar, d=radarDados();
+  const comparar = f.comparar && f.periodo!=="todos";
+  const responsaveis=[...new Set(STATE.auditorias.map(a=>a.responsavel).filter(Boolean))].sort();
+  if(f.resp!=="todos" && !responsaveis.includes(f.resp)) f.resp="todos";
+  const chip=(k,v,rotulo)=>`<button type="button" class="chip ${String(f[k])===v?'active':''}" data-rf="${k}" data-v="${v}">${rotulo}</button>`;
+
+  const tabela = d.cats.map((c,i)=>{
+    const a=d.atual[i], b=d.anterior[i];
+    let delta="";
+    if(comparar && a!==null && b!==null){
+      const x=Math.round((a-b)*10)/10;
+      delta = x===0? '<span class="rd-delta">=</span>' : `<span class="rd-delta ${x>0?'up':'down'}">${x>0?'▲':'▼'} ${Math.abs(x)}</span>`;
+    }
+    return `<div class="rank-row"><div class="rank-name">${esc(c)}</div>${delta}<div class="rank-val num">${a===null?'-':a+'%'}</div></div>`;
+  }).join("");
+
+  box.innerHTML = `
+    <div class="filter-row">
+      ${chip("periodo","7","7 dias")}${chip("periodo","30","30 dias")}${chip("periodo","90","90 dias")}${chip("periodo","todos","Tudo")}
+    </div>
+    <div class="filter-row">
+      ${chip("turno","todos","Todos")}${chip("turno","Manhã","Manhã")}${chip("turno","Tarde","Tarde")}
+      <div class="chip"><select id="radar-resp">
+        <option value="todos">Todos responsáveis</option>
+        ${responsaveis.map(r=>`<option value="${esc(r)}" ${f.resp===r?'selected':''}>${esc(r)}</option>`).join("")}
+      </select></div>
+      ${f.periodo!=="todos"? `<button type="button" class="chip ${f.comparar?'active':''}" id="radar-comp">Comparar com período anterior</button>`:""}
+    </div>
+    ${d.nAtual? `
+      <div class="chart-wrap" style="height:320px"><canvas id="chart-radar"></canvas></div>
+      <div class="radar-info num">${d.nAtual} auditoria${d.nAtual>1?'s':''} no período${comparar? ` · ${d.nAnterior} no período anterior`:''}</div>
+      <div style="margin-top:8px">${tabela}</div>`
+    : `<div class="empty-state"><div class="s">Nenhuma auditoria com esses filtros.</div></div>`}
+  `;
+
+  box.querySelectorAll(".chip[data-rf]").forEach(c=>{
+    c.addEventListener("click", ()=>{ f[c.dataset.rf]=c.dataset.v; atualizarRadar(); });
+  });
+  const sel=document.getElementById("radar-resp");
+  if(sel) sel.addEventListener("change", e=>{ f.resp=e.target.value; atualizarRadar(); });
+  const comp=document.getElementById("radar-comp");
+  if(comp) comp.addEventListener("click", ()=>{ f.comparar=!f.comparar; atualizarRadar(); });
+
+  const cv=document.getElementById("chart-radar");
+  if(!cv || typeof Chart==="undefined") return;
+  const cor=getComputedStyle(document.documentElement).getPropertyValue("--ink-soft").trim() || "#7A6A56";
+  const datasets=[{
+    label:"Período atual", data:d.atual,
+    borderColor:"#5C2E08", backgroundColor:"rgba(196,154,108,.35)",
+    pointBackgroundColor:"#5C2E08", borderWidth:2, pointRadius:3,
+  }];
+  if(comparar && d.nAnterior){
+    datasets.push({
+      label:"Período anterior", data:d.anterior,
+      borderColor:"#9A8B78", backgroundColor:"rgba(154,139,120,.10)",
+      pointBackgroundColor:"#9A8B78", borderWidth:1.5, borderDash:[5,4], pointRadius:2,
+    });
+  }
+  chartRadar = new Chart(cv, {
+    type:"radar",
+    data:{labels:d.cats.map(quebraRotulo), datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{left:22, right:22, top:4, bottom:4}},
+      plugins:{legend:{display:datasets.length>1, labels:{color:cor, font:{size:11}}}},
+      scales:{r:{
+        min:0, max:100,
+        ticks:{stepSize:25, callback:v=>v+"%", font:{size:9}, color:cor, backdropColor:"transparent"},
+        grid:{color:"rgba(122,106,86,.25)"}, angleLines:{color:"rgba(122,106,86,.25)"},
+        pointLabels:{font:{size:10.5, weight:"bold"}, color:cor},
+      }},
+    }
+  });
 }
 
 function renderInicio(el){
@@ -967,9 +1095,12 @@ function renderInicio(el){
         if(it.tipo==="texto") return;
         const r=(a.respostas||{})[it.id];
         if(!r) return;
-        const e=(stat[it.label]=stat[it.label]||{label:it.label, n:0, falhas:0, crit:!!it.crit});
+        const e=(stat[it.label]=stat[it.label]||{label:it.label, n:0, falhas:0, nao:0, parcial:0, crit:!!it.crit});
         e.n++;
-        if(!CONFORMES.has(r)) e.falhas++;
+        if(!CONFORMES.has(r)){
+          e.falhas++;
+          if(PARCIAIS.has(r)) e.parcial++; else e.nao++;
+        }
       });
     });
     const ranking=Object.values(stat).filter(e=>e.falhas>0)
@@ -978,7 +1109,7 @@ function renderInicio(el){
       const taxa=Math.round(e.falhas/e.n*100);
       return `<div class="rank-row">
         <div class="rank-idx">${i+1}</div>
-        <div class="rank-name">${esc(e.label)}${e.crit? ' '+icon('alert'):''}<div class="rank-meta">${e.falhas} de ${e.n} ${e.n>1?'vezes':'vez'}</div></div>
+        <div class="rank-name">${esc(e.label)}${e.crit? ' '+icon('alert'):''}<div class="rank-meta">${e.falhas} de ${e.n} ${e.n>1?'vezes':'vez'} · ${e.nao} Não · ${e.parcial} Parcial</div></div>
         <div class="rank-val num" style="color:var(--crit)">${taxa}%</div>
       </div>`;
     };
@@ -1016,6 +1147,9 @@ function renderInicio(el){
     <div class="card chart-card">
       <div class="chart-wrap"><canvas id="chart-evol"></canvas></div>
     </div>
+
+    <div class="section-title">Radar por categoria</div>
+    <div class="card chart-card" id="radar-box"></div>
 
     <div class="section-title">Por responsável</div>
     <div class="card">${rankResp || '<div class="empty-state"><div class="s">Sem dados suficientes ainda.</div></div>'}</div>
@@ -1060,6 +1194,7 @@ function renderInicio(el){
 
   if(total){
     const ordenadas=STATE.auditorias.filter(a=>a.data && a.turno).sort((a,b)=> (a.data+a.turno).localeCompare(b.data+b.turno)).slice(-14);
+    atualizarRadar();
     const ctx=document.getElementById("chart-evol");
     chartEvol = new Chart(ctx, {
       type:"line",
