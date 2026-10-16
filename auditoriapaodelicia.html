@@ -486,7 +486,8 @@ const CAT_ICON = {
   "Produtos e Validade":"inbox","Limpeza e Organização":"sun","Operação e Insumos":"circle",
   "Processos e Pessoas":"checkCircle","Descarte e Lixo":"trash","Observações":"alert"
 };
-const ITENS_MANHA = [
+// Versão 2 (anterior): usada só para exibir auditorias salvas antes da revisão das perguntas.
+const ITENS_V2 = [
   {id:"m01",cat:"Produtos e Validade",label:"Reposição dos produtos gôndola",tipo:"opt",opts:OPT.reposicao,crit:false},
   {id:"m02",cat:"Produtos e Validade",label:"Verificada data de validade e retirada dos produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
   {id:"m03",cat:"Produtos e Validade",label:"Todos os produtos com preço",tipo:"opt",opts:OPT.simnao,crit:false},
@@ -512,6 +513,31 @@ const ITENS_MANHA = [
   {id:"m23",cat:"Processos e Pessoas",label:"Todas as funções sendo feitas conforme orientação",tipo:"opt",opts:OPT.simnao,crit:false},
   {id:"m24",cat:"Descarte e Lixo",label:"Lixos sendo retirados e separação correta",tipo:"opt",opts:OPT.simnao,crit:false},
   {id:"m25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnao,crit:false},
+];
+// Versão 3 (atual): sem adega, sem perguntas repetidas. Manhã e Tarde usam a mesma lista.
+const ITENS_MANHA = [
+  {id:"m01",cat:"Produtos e Validade",label:"Reposição dos produtos gôndola",tipo:"opt",opts:OPT.reposicao,crit:false},
+  {id:"m02",cat:"Produtos e Validade",label:"Verificada a data de validade de todos os produtos (inclusive bebidas) e retirados os vencidos",tipo:"opt",opts:OPT.validade,crit:true},
+  {id:"m03",cat:"Produtos e Validade",label:"Todos os produtos com preço",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m07",cat:"Produtos e Validade",label:"Placas dos alimentos colocadas",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m04",cat:"Limpeza e Organização",label:"Vidros e geladeiras foram limpos",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m05",cat:"Limpeza e Organização",label:"Vitrine de bebidas limpa",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m09",cat:"Limpeza e Organização",label:"Vitrines de exposição limpas (Sobremesas, Roscas, Bolos, Frios, Leite, Laranja, Torta)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m12",cat:"Limpeza e Organização",label:"Câmara de resfriamento organizada",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m15",cat:"Limpeza e Organização",label:"Vitrine de salgados limpa e reposta",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m16",cat:"Limpeza e Organização",label:"Setor salgado limpo, organizado e caixas repostas",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m18",cat:"Limpeza e Organização",label:"Balcões, chão e cadeiras limpos e organizados",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m22",cat:"Limpeza e Organização",label:"Banheiro dos clientes limpo e com tudo reposto",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m10",cat:"Operação e Insumos",label:"Utensílios limpos (Liquidificador, Chapa, Máquina de café)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m11",cat:"Operação e Insumos",label:"Produtos sendo cobertos com o véu",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m13",cat:"Operação e Insumos",label:"Embalagens repostas e local limpo",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m14",cat:"Operação e Insumos",label:"Insumos do balcão repostos (Leite, Gelo, Frios, Saladas, Coca, Laranja, Ovos, Pães)",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m21",cat:"Operação e Insumos",label:"Detergente e álcool repostos",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m19",cat:"Processos e Pessoas",label:"Encomendas anotadas e passadas corretamente",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m20",cat:"Processos e Pessoas",label:"Teve algum erro ou problema nas comandas",tipo:"opt",opts:OPT.simnao,crit:true},
+  {id:"m23",cat:"Processos e Pessoas",label:"Todas as funções sendo feitas conforme orientação",tipo:"opt",opts:OPT.simnao,crit:false},
+  {id:"m17",cat:"Descarte e Lixo",label:"Lixos orgânico e inorgânico retirados e separados corretamente",tipo:"opt",opts:OPT.simnao,crit:false},
 ];
 // Versão antiga do checklist da tarde: usada só para exibir auditorias já salvas (sem campo "versao").
 const ITENS_TARDE_V1 = [
@@ -554,7 +580,11 @@ const CHECKLIST_DEFS = [
 ];
 function defChecklist(id){ return CHECKLIST_DEFS.find(d=>d.id===id) || CHECKLIST_DEFS[0]; }
 function itensDoTurno(turno){ return CHECKLISTS[turno] || ITENS_MANHA; }
-function itensDaAuditoria(a){ return (a && a.turno==="Tarde" && !a.versao)? ITENS_TARDE_V1 : itensDoTurno(a && a.turno); }
+function itensDaAuditoria(a){
+  if(a && a.versao>=3) return itensDoTurno(a.turno);
+  if(a && a.turno==="Tarde" && !a.versao) return ITENS_TARDE_V1;
+  return ITENS_V2;
+}
 function categoriasComItens(itens){ return CATEGORIAS.filter(c => itens.some(i=>i.cat===c)); }
 
 function calcConformidade(itens, respostas){
@@ -791,7 +821,7 @@ function subscribeAuditorias(){
 async function salvarAuditoriaFirestore(registro){
   const docId = `${registro.data}_${registro.turno}`;
   await db.collection("auditorias").doc(docId).set({
-    versao: 2,
+    versao: 3,
     horaInicio: registro.horaInicio || null,
     horaFim: registro.horaFim || null,
     obsEtapas: registro.obsEtapas || {},
