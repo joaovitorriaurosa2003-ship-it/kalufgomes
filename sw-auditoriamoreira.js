@@ -2,7 +2,7 @@
 // Registrado com escopo restrito a /auditoriamoreira.html, então
 // não controla o index.html nem as outras páginas do site.
 // Só cacheia arquivos do próprio site; Firebase, fontes e CDNs passam direto.
-const CACHE_NAME = "auditoria-moreira-v3";
+const CACHE_NAME = "auditoria-moreira-v4";
 const CORE_ASSETS = [
   "./auditoriamoreira.html",
   "./auditoria-moreira/manifest.json",
